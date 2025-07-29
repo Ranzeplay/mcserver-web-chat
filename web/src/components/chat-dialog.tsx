@@ -10,6 +10,9 @@ interface ChatDialogProps {
 }
 
 export function ChatDialog({ className }: ChatDialogProps) {
+  // Get max message length from environment variable, default to 256
+  const maxMessageLength = parseInt(import.meta.env.VITE_MAX_MESSAGE_LENGTH || '256')
+  
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
@@ -101,7 +104,7 @@ export function ChatDialog({ className }: ChatDialogProps) {
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
             className="flex-1"
-            maxLength={256}
+            maxLength={maxMessageLength}
           />
           <Button
             onClick={handleSendMessage}
@@ -113,7 +116,7 @@ export function ChatDialog({ className }: ChatDialogProps) {
           </Button>
         </div>
         <div className="text-xs text-muted-foreground mt-2">
-          Press Enter to send • {newMessage.length}/256 characters
+          Press Enter to send • {newMessage.length}/{maxMessageLength} characters
         </div>
       </div>
     </div>
