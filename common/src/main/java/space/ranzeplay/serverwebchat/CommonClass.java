@@ -1,6 +1,7 @@
 package space.ranzeplay.serverwebchat;
 
 import space.ranzeplay.serverwebchat.platform.Services;
+import space.ranzeplay.serverwebchat.web.WebServer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 
@@ -9,6 +10,8 @@ import net.minecraft.world.item.Items;
 // common compatible binaries. This means common code can not directly use loader specific concepts such as Forge events
 // however it will be compatible with all supported mod loaders.
 public class CommonClass {
+
+    private static WebServer webServer;
 
     // The loader specific projects are able to import and use any code from the common project. This allows you to
     // write the majority of your code here and load it from your loader specific projects. This example has some
@@ -24,6 +27,23 @@ public class CommonClass {
         // the platform specific approach.
         if (Services.PLATFORM.isModLoaded("serverwebchat")) {
             Constants.LOG.info("Hello to serverwebchat");
+        }
+
+        // Start the web server
+        startWebServer();
+    }
+
+    public static void startWebServer() {
+        if (webServer == null) {
+            webServer = new WebServer();
+            webServer.start();
+        }
+    }
+
+    public static void stopWebServer() {
+        if (webServer != null) {
+            webServer.stop();
+            webServer = null;
         }
     }
 }
