@@ -2,3 +2,9 @@
 **/build/
 **/run/
 .idea/
+
+# Test artifacts
+test-output/
+**/test-*.gradle
+**/settings-test.gradle
+**/build-test.gradle
