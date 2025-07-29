@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import space.ranzeplay.serverwebchat.Constants;
 import space.ranzeplay.serverwebchat.auth.AuthService;
+import space.ranzeplay.serverwebchat.config.WebServerConfig;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,26 +15,33 @@ import java.nio.charset.StandardCharsets;
 public class WebServer {
     private HttpServer server;
     private AuthService authService;
-    private static final int DEFAULT_PORT = 8080;
+    private WebServerConfig config;
     
     public WebServer() {
         this.authService = new AuthService();
+        this.config = WebServerConfig.load();
     }
     
-    public void start(int port) {
+    public void start() {
+        if (!config.isEnabled()) {
+            Constants.LOG.info("Web server is disabled in configuration");
+            return;
+        }
+        
         try {
-            server = HttpServer.create(new InetSocketAddress(port), 0);
+            server = HttpServer.create(new InetSocketAddress(config.getHost(), config.getPort()), 0);
             server.createContext("/api/login", new LoginHandler());
             server.setExecutor(null);
             server.start();
-            Constants.LOG.info("Web server started on port {}", port);
+            Constants.LOG.info("Web server started on {}:{}", config.getHost(), config.getPort());
         } catch (IOException e) {
             Constants.LOG.error("Failed to start web server", e);
         }
     }
     
-    public void start() {
-        start(DEFAULT_PORT);
+    public void start(int port) {
+        config.setPort(port);
+        start();
     }
     
     public void stop() {
@@ -46,6 +54,12 @@ public class WebServer {
     private class LoginHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                sendCorsHeaders(exchange);
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
+            
             if (!"POST".equals(exchange.getRequestMethod())) {
                 sendResponse(exchange, 405, "{\"error\":\"Method not allowed\"}");
                 return;
@@ -62,11 +76,15 @@ public class WebServer {
             }
         }
         
-        private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
+        private void sendCorsHeaders(HttpExchange exchange) {
             exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
             exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "POST, OPTIONS");
             exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+        }
+        
+        private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            sendCorsHeaders(exchange);
             
             byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(statusCode, responseBytes.length);
