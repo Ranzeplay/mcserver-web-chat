@@ -1,0 +1,17 @@
+task testWebBuild(type: Exec) {
+    workingDir file('web')
+    commandLine 'pnpm', 'install'
+    
+    doLast {
+        exec {
+            workingDir file('web')
+            commandLine 'pnpm', 'build'
+        }
+    }
+}
+
+task testCopyWebAssets(type: Copy) {
+    dependsOn testWebBuild
+    from file('web/dist')
+    into file('test-output/web')
+}

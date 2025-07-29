@@ -77,7 +77,29 @@ jar {
     }
 }
 
+// Task to build web assets using pnpm
+task buildWeb(type: Exec) {
+    workingDir rootProject.file('web')
+    commandLine 'pnpm', 'install'
+    
+    doLast {
+        exec {
+            workingDir rootProject.file('web')
+            commandLine 'pnpm', 'build'
+        }
+    }
+}
+
+// Task to copy web assets to resources
+task copyWebAssets(type: Copy) {
+    dependsOn buildWeb
+    from rootProject.file('web/dist')
+    into layout.buildDirectory.dir('resources/main/web')
+}
+
 processResources {
+    dependsOn copyWebAssets
+    
     var expandProps = ['version'                      : version,
                        'group'                        : project.group, //Else we target the task's group.
                        'minecraft_version'            : minecraft_version,
