@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "mcserver-web-chat"
+version = "${version}"
+displayName = "mcserver-web-chat"
+authors = "Jeb Feng"
+description = '''
+
+'''
+#logoFile = ""
+
+[[dependencies.mcserver-web-chat]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mcserver-web-chat]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.7,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mcserver-web-chat]]
+modId = "architectury"
+type = "required"
+versionRange = "[17.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[mixins]]
+config = "mcserver-web-chat.mixins.json"

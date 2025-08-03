@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "mcserver-web-chat",
+  "version": "${version}",
+  "name": "mcserver-web-chat",
+  "description": "",
+  "authors": [
+    "Jeb Feng"
+  ],
+  "contact": {
+    "homepage": ""
+  },
+  "license": "MIT",
+  "icon": "assets/mcserver-web-chat/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "space.ranzeplay.MCServerWebChat.fabric.MainFabric"
+    ],
+    "client": [
+      "space.ranzeplay.MCServerWebChat.fabric.client.MainFabricClient"
+    ]
+  },
+  "mixins": [
+    "mcserver-web-chat.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.17.0",
+    "minecraft": "~1.21.7",
+    "java": ">=21",
+    "architectury": ">=17.0.8",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
