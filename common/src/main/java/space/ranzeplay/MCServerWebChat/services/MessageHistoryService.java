@@ -18,9 +18,13 @@ public class MessageHistoryService {
     private final List<ChatMessage> messageHistory = new ArrayList<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Gson gson = new Gson();
+    private final DataPersistenceService persistenceService;
     private static final int MAX_HISTORY_SIZE = 100;
 
-    private MessageHistoryService() {}
+    private MessageHistoryService() {
+        this.persistenceService = DataPersistenceService.getInstance();
+        loadHistory();
+    }
 
     public static synchronized MessageHistoryService getInstance() {
         if (instance == null) {
@@ -39,6 +43,9 @@ public class MessageHistoryService {
             if (messageHistory.size() > MAX_HISTORY_SIZE) {
                 messageHistory.remove(0);
             }
+            
+            // Save to persistent storage
+            saveHistory();
         } finally {
             lock.writeLock().unlock();
         }
@@ -67,6 +74,28 @@ public class MessageHistoryService {
         String sourcePrefix = "game".equals(msg.source) ? "§a[Game]" : "§b[Web]";
         String timestamp = msg.timestamp.format(DateTimeFormatter.ofPattern("HH:mm"));
         return String.format("§7[%s] %s %s§f: %s", timestamp, sourcePrefix, msg.username, msg.message);
+    }
+
+    /**
+     * Load message history from persistent storage
+     */
+    private void loadHistory() {
+        lock.writeLock().lock();
+        try {
+            List<ChatMessage> loadedHistory = persistenceService.loadChatHistory();
+            messageHistory.clear();
+            messageHistory.addAll(loadedHistory);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Save message history to persistent storage
+     */
+    private void saveHistory() {
+        // Called within write lock from addMessage, so no additional locking needed
+        persistenceService.saveChatHistory(new ArrayList<>(messageHistory));
     }
 
     public static class ChatMessage {

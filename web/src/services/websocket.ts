@@ -13,7 +13,7 @@ export interface AuthState {
 
 export type WebSocketMessage = 
   | { type: 'auth'; username: string; password?: string }
-  | { type: 'otp_verify'; username: string; otp: string; password: string }
+  | { type: 'otp_verify'; otp: string }
   | { type: 'chat'; message: string };
 
 export type ServerMessage = 

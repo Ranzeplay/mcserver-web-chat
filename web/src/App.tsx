@@ -113,10 +113,10 @@ function App() {
     wsService.sendMessage({ type: 'auth', username, password });
   };
 
-  const handleOtpVerify = (username: string, otp: string, password: string) => {
+  const handleOtpVerify = (otp: string) => {
     setAuthMode('authenticating');
     setAuthError(null);
-    wsService.sendMessage({ type: 'otp_verify', username, otp, password });
+    wsService.sendMessage({ type: 'otp_verify', otp });
   };
 
   const handleSendMessage = (messageText: string) => {
