@@ -1,5 +1,7 @@
 package space.ranzeplay.MCServerWebChat.neoforge;
 
+import net.neoforged.fml.loading.FMLConfig;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.ServerChatEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import space.ranzeplay.MCServerWebChat.Main;
@@ -14,7 +16,7 @@ import space.ranzeplay.MCServerWebChat.models.InGameChatMessage;
 public final class MainNeoForge {
     public MainNeoForge() {
         // Run our common setup.
-        Main.init();
+        Main.init(FMLPaths.CONFIGDIR.get());
         
         // Register shutdown event
         NeoForge.EVENT_BUS.addListener(this::onServerStopping);

@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import net.minecraft.server.MinecraftServer;
+import space.ranzeplay.MCServerWebChat.Main;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -37,19 +39,7 @@ public class DataPersistenceService {
     }
 
     private Path getConfigDirectory() {
-        // Try to get the minecraft server directory
-        try {
-            net.minecraft.server.MinecraftServer server = space.ranzeplay.MCServerWebChat.Main.getMinecraftServer();
-            if (server != null) {
-                java.io.File serverDir = server.getFile(".");
-                return serverDir.toPath().resolve("config").resolve("mcserver-web-chat");
-            }
-        } catch (Exception e) {
-            // Fallback if minecraft server is not available
-        }
-        
-        // Fallback to current working directory + config
-        return Paths.get("config", "mcserver-web-chat");
+        return Main.getRootConfigDir().resolve("mcserver-web-chat");
     }
 
     public static synchronized DataPersistenceService getInstance() {

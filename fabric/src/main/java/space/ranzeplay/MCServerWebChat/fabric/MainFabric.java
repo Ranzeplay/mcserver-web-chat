@@ -1,6 +1,7 @@
 package space.ranzeplay.MCServerWebChat.fabric;
 
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import space.ranzeplay.MCServerWebChat.Main;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -15,7 +16,7 @@ public final class MainFabric implements ModInitializer {
         // Proceed with mild caution.
 
         // Run our common setup.
-        Main.init();
+        Main.init(FabricLoader.getInstance().getConfigDir());
         
         // Register server shutdown event
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
