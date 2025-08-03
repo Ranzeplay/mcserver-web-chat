@@ -10,9 +10,11 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import space.ranzeplay.MCServerWebChat.handlers.WebSocketHandler;
 import space.ranzeplay.MCServerWebChat.handlers.HttpStaticFileHandler;
 
+@Slf4j
 public class WebServer {
     private static final int PORT = 8080;
     private EventLoopGroup bossGroup;
@@ -51,11 +53,10 @@ public class WebServer {
             ChannelFuture f = b.bind(PORT).sync();
             isRunning = true;
             serverChannel = f.channel();
-            System.out.println("MC Web Chat server started on port " + PORT);
+            log.info("MC Web Chat server started on port {}", PORT);
             
         } catch (Exception e) {
-            System.err.println("Failed to start web server: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to start web server: {}", e.getMessage(), e);
             stop();
         }
     }
@@ -71,6 +72,7 @@ public class WebServer {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.warn("Interrupted while stopping web server", e);
         } finally {
             if (bossGroup != null) {
                 bossGroup.shutdownGracefully();
@@ -79,7 +81,7 @@ public class WebServer {
                 workerGroup.shutdownGracefully();
             }
             isRunning = false;
-            System.out.println("MC Web Chat server stopped");
+            log.info("MC Web Chat server stopped");
         }
     }
 

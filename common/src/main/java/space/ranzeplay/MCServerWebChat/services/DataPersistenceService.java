@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 import net.minecraft.server.MinecraftServer;
 import space.ranzeplay.MCServerWebChat.Main;
 
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 /**
  * Service for persisting data to the config/mcserver-web-chat directory
  */
+@Slf4j
 public class DataPersistenceService {
     private static DataPersistenceService instance;
     private final Gson gson;
@@ -52,9 +54,9 @@ public class DataPersistenceService {
     private void createConfigDirectory() {
         try {
             Files.createDirectories(configDir);
+            log.debug("Created config directory: {}", configDir);
         } catch (IOException e) {
-            System.err.println("Failed to create config directory: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to create config directory: {}", e.getMessage(), e);
         }
     }
 
@@ -64,9 +66,9 @@ public class DataPersistenceService {
     public void saveUsers(Map<String, String> users) {
         try (FileWriter writer = new FileWriter(usersFile.toFile())) {
             gson.toJson(users, writer);
+            log.debug("Saved {} users to file", users.size());
         } catch (IOException e) {
-            System.err.println("Failed to save users data: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to save users data: {}", e.getMessage(), e);
         }
     }
 
@@ -75,16 +77,18 @@ public class DataPersistenceService {
      */
     public Map<String, String> loadUsers() {
         if (!Files.exists(usersFile)) {
+            log.debug("Users file does not exist, returning empty map");
             return new ConcurrentHashMap<>();
         }
 
         try (FileReader reader = new FileReader(usersFile.toFile())) {
             Type type = new TypeToken<Map<String, String>>(){}.getType();
             Map<String, String> users = gson.fromJson(reader, type);
-            return users != null ? new ConcurrentHashMap<>(users) : new ConcurrentHashMap<>();
+            Map<String, String> result = users != null ? new ConcurrentHashMap<>(users) : new ConcurrentHashMap<>();
+            log.debug("Loaded {} users from file", result.size());
+            return result;
         } catch (IOException | JsonSyntaxException e) {
-            System.err.println("Failed to load users data: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to load users data: {}", e.getMessage(), e);
             return new ConcurrentHashMap<>();
         }
     }
@@ -95,9 +99,9 @@ public class DataPersistenceService {
     public void saveChatHistory(List<MessageHistoryService.ChatMessage> messages) {
         try (FileWriter writer = new FileWriter(chatHistoryFile.toFile())) {
             gson.toJson(messages, writer);
+            log.debug("Saved {} chat messages to file", messages.size());
         } catch (IOException e) {
-            System.err.println("Failed to save chat history: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to save chat history: {}", e.getMessage(), e);
         }
     }
 
@@ -106,16 +110,18 @@ public class DataPersistenceService {
      */
     public List<MessageHistoryService.ChatMessage> loadChatHistory() {
         if (!Files.exists(chatHistoryFile)) {
+            log.debug("Chat history file does not exist, returning empty list");
             return new ArrayList<>();
         }
 
         try (FileReader reader = new FileReader(chatHistoryFile.toFile())) {
             Type type = new TypeToken<List<MessageHistoryService.ChatMessage>>(){}.getType();
             List<MessageHistoryService.ChatMessage> messages = gson.fromJson(reader, type);
-            return messages != null ? new ArrayList<>(messages) : new ArrayList<>();
+            List<MessageHistoryService.ChatMessage> result = messages != null ? new ArrayList<>(messages) : new ArrayList<>();
+            log.debug("Loaded {} chat messages from file", result.size());
+            return result;
         } catch (IOException | JsonSyntaxException e) {
-            System.err.println("Failed to load chat history: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to load chat history: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }

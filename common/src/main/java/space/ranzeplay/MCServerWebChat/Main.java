@@ -1,9 +1,11 @@
 package space.ranzeplay.MCServerWebChat;
 
+import lombok.extern.slf4j.Slf4j;
 import net.minecraft.server.MinecraftServer;
 
 import java.nio.file.Path;
 
+@Slf4j
 public final class Main {
     public static final String MOD_ID = "mcserver-web-chat";
     private static WebServer webServer;
@@ -17,7 +19,7 @@ public final class Main {
 
     public static void init(Path rootConfigDir) {
         // Write common init code here.
-        System.out.println("Initializing MC Web Chat mod...");
+        log.info("Initializing MC Web Chat mod...");
 
         ROOT_CONFIG_DIR = rootConfigDir;
         
@@ -29,15 +31,14 @@ public final class Main {
             try {
                 webServer.start();
             } catch (Exception e) {
-                System.err.println("Failed to start MC Web Chat server: " + e.getMessage());
-                e.printStackTrace();
+                log.error("Failed to start MC Web Chat server: {}", e.getMessage(), e);
             }
         });
         serverThread.setDaemon(true);
         serverThread.setName("MC-Web-Chat-Server");
         serverThread.start();
         
-        System.out.println("MC Web Chat mod initialized successfully!");
+        log.info("MC Web Chat mod initialized successfully!");
     }
     
     public static void shutdown() {
