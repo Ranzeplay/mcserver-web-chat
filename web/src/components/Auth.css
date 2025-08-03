@@ -1,0 +1,192 @@
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-card {
+  background: var(--card-bg, rgba(255, 255, 255, 0.95));
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.auth-card h2 {
+  margin: 0 0 1.5rem 0;
+  color: var(--primary-color, #333);
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.auth-card h3 {
+  margin: 0 0 1rem 0;
+  color: var(--secondary-color, #666);
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.auth-toggle {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #ddd);
+}
+
+.auth-toggle button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: var(--button-bg, #f8f9fa);
+  color: var(--text-color, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.auth-toggle button.active {
+  background: var(--primary-color, #667eea);
+  color: white;
+}
+
+.auth-toggle button:hover:not(.active) {
+  background: var(--button-hover-bg, #e9ecef);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-color, #333);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--input-bg, white);
+  color: var(--text-color, #333);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color, #667eea);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.auth-form button[type="submit"] {
+  padding: 0.875rem;
+  background: var(--primary-color, #667eea);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.auth-form button[type="submit"]:hover:not(:disabled) {
+  background: var(--primary-hover, #5a6fd8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.auth-form button[type="submit"]:disabled {
+  background: var(--disabled-bg, #ccc);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.error-message {
+  color: var(--error-color, #e74c3c);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+  padding: 0.5rem;
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid var(--error-color, #e74c3c);
+}
+
+.otp-message {
+  color: var(--success-color, #27ae60);
+  font-size: 0.9rem;
+  margin: 0 0 1rem 0;
+  padding: 0.5rem;
+  background: rgba(39, 174, 96, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid var(--success-color, #27ae60);
+}
+
+.register-info {
+  font-size: 0.85rem;
+  color: var(--secondary-color, #666);
+  margin: 1rem 0 0 0;
+  line-height: 1.4;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .auth-card {
+    --card-bg: rgba(42, 42, 54, 0.95);
+    --primary-color: #667eea;
+    --primary-hover: #5a6fd8;
+    --secondary-color: #a0a0a0;
+    --text-color: #e0e0e0;
+    --border-color: #555;
+    --button-bg: #4a4a5a;
+    --button-hover-bg: #5a5a6a;
+    --input-bg: #3a3a4a;
+    --disabled-bg: #666;
+    --error-color: #ff6b6b;
+    --success-color: #51cf66;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 0.5rem;
+  }
+  
+  .auth-card {
+    padding: 1.5rem;
+  }
+  
+  .auth-card h2 {
+    font-size: 1.5rem;
+  }
+  
+  .form-group input {
+    padding: 0.625rem;
+  }
+  
+  .auth-form button[type="submit"] {
+    padding: 0.75rem;
+  }
+}
