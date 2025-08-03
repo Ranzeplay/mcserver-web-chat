@@ -34,6 +34,22 @@ subprojects {
     dependencies {
         minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
         mappings loom.officialMojangMappings()
+
+        implementation 'io.netty:netty-handler:4.1.100.Final'
+        implementation 'io.netty:netty-codec-http:4.1.100.Final'
+        implementation 'io.netty:netty-transport:4.1.100.Final'
+        implementation 'io.netty:netty-common:4.1.100.Final'
+        implementation 'io.netty:netty-buffer:4.1.100.Final'
+        implementation 'io.netty:netty-transport-native-epoll:4.1.100.Final'
+        implementation 'io.netty:netty-transport-native-kqueue:4.1.100.Final'
+        implementation 'com.google.code.gson:gson:2.10.1'
+        implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+        implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+        implementation 'io.jsonwebtoken:jjwt-gson:0.12.3'
+        implementation 'at.favre.lib:bcrypt:0.10.2'
+
+        compileOnly 'org.projectlombok:lombok:1.18.38'
+        annotationProcessor 'org.projectlombok:lombok:1.18.38'
     }
 
     java {

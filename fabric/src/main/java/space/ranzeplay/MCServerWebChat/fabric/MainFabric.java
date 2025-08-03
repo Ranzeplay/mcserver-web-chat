@@ -1,7 +1,11 @@
 package space.ranzeplay.MCServerWebChat.fabric;
 
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import space.ranzeplay.MCServerWebChat.Main;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import space.ranzeplay.MCServerWebChat.handlers.PlayerChatHandler;
+import space.ranzeplay.MCServerWebChat.models.InGameChatMessage;
 
 public final class MainFabric implements ModInitializer {
     @Override
@@ -12,5 +16,18 @@ public final class MainFabric implements ModInitializer {
 
         // Run our common setup.
         Main.init();
+        
+        // Register server shutdown event
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            Main.shutdown();
+        });
+
+        // Set the Minecraft server instance in the main class
+        ServerLifecycleEvents.SERVER_STARTING.register(Main::setMinecraftServer);
+
+        ServerMessageEvents.CHAT_MESSAGE.register((playerChatMessage, serverPlayer, bound) -> {
+            var obj = new InGameChatMessage(serverPlayer, playerChatMessage.signedContent(), playerChatMessage.decoratedContent());
+            PlayerChatHandler.handlePlayerChat(obj);
+        });
     }
 }
