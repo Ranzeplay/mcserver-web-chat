@@ -2,14 +2,24 @@ package space.ranzeplay.MCServerWebChat;
 
 import net.minecraft.server.MinecraftServer;
 
+import java.nio.file.Path;
+
 public final class Main {
     public static final String MOD_ID = "mcserver-web-chat";
     private static WebServer webServer;
     private static MinecraftServer minecraftServer;
 
-    public static void init() {
+    public static Path getRootConfigDir() {
+        return ROOT_CONFIG_DIR;
+    }
+
+    private static Path ROOT_CONFIG_DIR;
+
+    public static void init(Path rootConfigDir) {
         // Write common init code here.
         System.out.println("Initializing MC Web Chat mod...");
+
+        ROOT_CONFIG_DIR = rootConfigDir;
         
         // Start the web server
         webServer = new WebServer();

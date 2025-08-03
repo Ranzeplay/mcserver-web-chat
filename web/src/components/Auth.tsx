@@ -3,7 +3,7 @@ import './Auth.css';
 
 interface AuthProps {
   onAuth: (username: string, password: string) => void;
-  onOtpVerify: (username: string, otp: string, password: string) => void;
+  onOtpVerify: (otp: string) => void;
   authState: 'idle' | 'authenticating' | 'otp_required';
   error: string | null;
   otpMessage: string | null;
@@ -25,7 +25,7 @@ export default function Auth({ onAuth, onOtpVerify, authState, error, otpMessage
   const handleOtpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp.trim()) return;
-    onOtpVerify(username, otp, password);
+    onOtpVerify(otp);
   };
 
   if (authState === 'otp_required') {
@@ -49,12 +49,12 @@ export default function Auth({ onAuth, onOtpVerify, authState, error, otpMessage
               />
             </div>
             <div className="form-group">
-              <label htmlFor="new-password">Your password:</label>
+              <label htmlFor="new-password">Password (already submitted):</label>
               <input
                 id="new-password"
                 type="password"
-                value={password}
-                placeholder="Password set"
+                value="••••••••"
+                placeholder="Password saved securely"
                 readOnly
                 disabled
               />

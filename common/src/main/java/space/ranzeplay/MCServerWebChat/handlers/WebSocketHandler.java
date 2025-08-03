@@ -6,6 +6,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import space.ranzeplay.MCServerWebChat.models.UserState;
 import space.ranzeplay.MCServerWebChat.services.AuthService;
 import space.ranzeplay.MCServerWebChat.services.ChatService;
 import space.ranzeplay.MCServerWebChat.services.MessageHistoryService;
@@ -14,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
     private static final ConcurrentHashMap<ChannelHandlerContext, String> authenticatedConnections = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<ChannelHandlerContext, UserState> connectionStates = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<ChannelHandlerContext, String> pendingUsernames = new ConcurrentHashMap<>();
     private static final Gson gson = new Gson();
 
     @Override
@@ -22,6 +25,12 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
             String message = ((TextWebSocketFrame) frame).text();
             handleTextMessage(ctx, message);
         }
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        // Initialize connection state
+        connectionStates.put(ctx, UserState.UNAUTHENTICATED);
     }
 
     private void handleTextMessage(ChannelHandlerContext ctx, String message) {
@@ -48,62 +57,109 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     }
 
     private void handleAuth(ChannelHandlerContext ctx, JsonObject json) {
+        UserState currentState = connectionStates.get(ctx);
+        
         String username = json.get("username").getAsString();
         String password = json.has("password") ? json.get("password").getAsString() : null;
 
         AuthService authService = AuthService.getInstance();
         
         if (password != null) {
-            // Login attempt
-            String token = authService.authenticate(username, password);
-            if (token != null) {
-                authenticatedConnections.put(ctx, username);
-                sendAuthSuccess(ctx, token, username);
-                // Send message history
-                MessageHistoryService.getInstance().sendHistoryToClient(ctx);
+            // Login attempt with password
+            if (authService.userExists(username)) {
+                // Existing user - authenticate
+                String token = authService.authenticate(username, password);
+                if (token != null) {
+                    setConnectionState(ctx, UserState.AUTHENTICATED, username);
+                    sendAuthSuccess(ctx, token, username);
+                    MessageHistoryService.getInstance().sendHistoryToClient(ctx);
+                } else {
+                    sendAuthFailure(ctx, "Invalid credentials");
+                }
             } else {
-                sendAuthFailure(ctx, "Invalid credentials");
+                // New user - start OTP process
+                String otp = authService.generateOTP(username, password);
+                ChatService.getInstance().sendOTPToPlayer(username, otp);
+                setConnectionState(ctx, UserState.OTP_REQUIRED, username);
+                sendOTPRequired(ctx, "OTP sent to in-game chat");
             }
         } else {
-            // Check if user exists, if not, trigger OTP process
-            if (!authService.userExists(username)) {
-                String otp = authService.generateOTP(username);
-                ChatService.getInstance().sendOTPToPlayer(username, otp);
-                sendOTPRequired(ctx, "OTP sent to in-game chat");
-            } else {
-                sendAuthFailure(ctx, "Password required for existing user");
-            }
+            sendAuthFailure(ctx, "Password is required");
         }
     }
 
     private void handleOtpVerify(ChannelHandlerContext ctx, JsonObject json) {
-        String username = json.get("username").getAsString();
+        UserState currentState = connectionStates.get(ctx);
+        
+        if (currentState != UserState.OTP_REQUIRED) {
+            sendError(ctx, "OTP verification not required in current state");
+            return;
+        }
+        
+        String username = pendingUsernames.get(ctx);
+        if (username == null) {
+            sendError(ctx, "No pending OTP verification");
+            return;
+        }
+        
         String otp = json.get("otp").getAsString();
-        String password = json.get("password").getAsString();
+        // Password is no longer required - it was stored during auth stage
 
         AuthService authService = AuthService.getInstance();
         
         if (authService.verifyOTP(username, otp)) {
-            // Create new user account
-            String token = authService.createUser(username, password);
-            authenticatedConnections.put(ctx, username);
-            sendAuthSuccess(ctx, token, username);
-            MessageHistoryService.getInstance().sendHistoryToClient(ctx);
+            // Create new user account using stored password
+            String token = authService.createUserFromOTP(username);
+            if (token != null) {
+                setConnectionState(ctx, UserState.AUTHENTICATED, username);
+                sendAuthSuccess(ctx, token, username);
+                MessageHistoryService.getInstance().sendHistoryToClient(ctx);
+            } else {
+                sendAuthFailure(ctx, "Failed to create user account");
+            }
         } else {
             sendAuthFailure(ctx, "Invalid OTP");
         }
     }
 
     private void handleChatMessage(ChannelHandlerContext ctx, JsonObject json) {
+        UserState currentState = connectionStates.get(ctx);
+        
+        if (currentState != UserState.AUTHENTICATED) {
+            sendError(ctx, "Not authenticated");
+            return;
+        }
+        
         String username = authenticatedConnections.get(ctx);
         if (username == null) {
-            sendError(ctx, "Not authenticated");
+            sendError(ctx, "Authentication error");
             return;
         }
 
         String message = json.get("message").getAsString();
         ChatService.getInstance().broadcastWebMessage(username, message);
         MessageHistoryService.getInstance().addMessage(username, message, "web");
+    }
+
+    /**
+     * Set connection state and manage associated data
+     */
+    private void setConnectionState(ChannelHandlerContext ctx, UserState state, String username) {
+        connectionStates.put(ctx, state);
+        
+        switch (state) {
+            case AUTHENTICATED:
+                authenticatedConnections.put(ctx, username);
+                pendingUsernames.remove(ctx);
+                break;
+            case OTP_REQUIRED:
+                pendingUsernames.put(ctx, username);
+                break;
+            case UNAUTHENTICATED:
+                authenticatedConnections.remove(ctx);
+                pendingUsernames.remove(ctx);
+                break;
+        }
     }
 
     private void sendAuthSuccess(ChannelHandlerContext ctx, String token, String username) {
@@ -138,6 +194,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         authenticatedConnections.remove(ctx);
+        connectionStates.remove(ctx);
+        pendingUsernames.remove(ctx);
     }
 
     public static void broadcastToWebClients(String message) {

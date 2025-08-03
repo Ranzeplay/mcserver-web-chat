@@ -18,10 +18,15 @@ public class AuthService {
     private final Map<String, String> users = new ConcurrentHashMap<>(); // username -> hashed password
     private final Map<String, String> pendingOTPs = new ConcurrentHashMap<>(); // username -> OTP
     private final Map<String, Long> otpTimestamps = new ConcurrentHashMap<>(); // username -> timestamp
+    private final Map<String, String> pendingPasswords = new ConcurrentHashMap<>(); // username -> password (for OTP flow)
     private final SecretKey jwtKey = Keys.hmacShaKeyFor("my-very-secure-jwt-secret-key-for-mcserver-web-chat".getBytes(StandardCharsets.UTF_8));
     private final Random random = new Random();
+    private final DataPersistenceService persistenceService;
 
-    private AuthService() {}
+    private AuthService() {
+        this.persistenceService = DataPersistenceService.getInstance();
+        loadUsers();
+    }
 
     public static synchronized AuthService getInstance() {
         if (instance == null) {
@@ -34,10 +39,12 @@ public class AuthService {
         return users.containsKey(username);
     }
 
-    public String generateOTP(String username) {
+    public String generateOTP(String username, String password) {
         String otp = String.format("%06d", random.nextInt(1000000));
         pendingOTPs.put(username, otp);
         otpTimestamps.put(username, System.currentTimeMillis());
+        // Store password for later use in OTP verification
+        pendingPasswords.put(username, password);
         return otp;
     }
 
@@ -53,6 +60,7 @@ public class AuthService {
         if (System.currentTimeMillis() - timestamp > 5 * 60 * 1000) {
             pendingOTPs.remove(username);
             otpTimestamps.remove(username);
+            pendingPasswords.remove(username);
             return false;
         }
         
@@ -60,6 +68,7 @@ public class AuthService {
         if (valid) {
             pendingOTPs.remove(username);
             otpTimestamps.remove(username);
+            // Don't remove pending password yet - we need it for user creation
         }
         
         return valid;
@@ -68,7 +77,16 @@ public class AuthService {
     public String createUser(String username, String password) {
         String hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
         users.put(username, hashedPassword);
+        saveUsers();
         return generateJWT(username);
+    }
+
+    public String createUserFromOTP(String username) {
+        String password = pendingPasswords.remove(username);
+        if (password == null) {
+            return null; // No pending password found
+        }
+        return createUser(username, password);
     }
 
     public String authenticate(String username, String password) {
@@ -120,5 +138,20 @@ public class AuthService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Load users from persistent storage
+     */
+    private void loadUsers() {
+        Map<String, String> loadedUsers = persistenceService.loadUsers();
+        users.putAll(loadedUsers);
+    }
+
+    /**
+     * Save users to persistent storage
+     */
+    private void saveUsers() {
+        persistenceService.saveUsers(users);
     }
 }
