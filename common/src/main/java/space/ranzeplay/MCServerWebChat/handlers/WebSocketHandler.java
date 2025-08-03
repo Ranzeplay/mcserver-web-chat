@@ -37,7 +37,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // Clean up connection data
         String username = authenticatedConnections.remove(ctx);
         connectionStates.remove(ctx);
@@ -226,13 +226,6 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         response.addProperty("type", "error");
         response.addProperty("message", error);
         ctx.writeAndFlush(new TextWebSocketFrame(gson.toJson(response)));
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-        authenticatedConnections.remove(ctx);
-        connectionStates.remove(ctx);
-        pendingUsernames.remove(ctx);
     }
 
     public static void broadcastToWebClients(String message) {
