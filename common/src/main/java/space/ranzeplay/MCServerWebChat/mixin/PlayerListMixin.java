@@ -13,6 +13,7 @@ import space.ranzeplay.MCServerWebChat.services.ChatService;
 @Mixin(PlayerList.class)
 public class PlayerListMixin {
 
+    /*
     @Inject(method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;)V", at = @At("HEAD"))
     private void onBroadcastChatMessage(PlayerChatMessage message, ServerPlayer sender, Component content, CallbackInfo ci) {
         try {
@@ -28,4 +29,5 @@ public class PlayerListMixin {
             e.printStackTrace();
         }
     }
+    */
 }

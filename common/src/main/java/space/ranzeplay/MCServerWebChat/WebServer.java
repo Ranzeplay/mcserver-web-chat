@@ -9,6 +9,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import lombok.Getter;
 import space.ranzeplay.MCServerWebChat.handlers.WebSocketHandler;
 import space.ranzeplay.MCServerWebChat.handlers.HttpStaticFileHandler;
 
@@ -17,6 +18,7 @@ public class WebServer {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private Channel serverChannel;
+    @Getter
     private boolean isRunning = false;
 
     public void start() {
@@ -88,7 +90,4 @@ public class WebServer {
         }
     }
 
-    public boolean isRunning() {
-        return isRunning;
-    }
 }

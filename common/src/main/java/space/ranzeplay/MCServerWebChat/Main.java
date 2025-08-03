@@ -1,8 +1,11 @@
 package space.ranzeplay.MCServerWebChat;
 
+import net.minecraft.server.MinecraftServer;
+
 public final class Main {
     public static final String MOD_ID = "mcserver-web-chat";
     private static WebServer webServer;
+    private static MinecraftServer minecraftServer;
 
     public static void init() {
         // Write common init code here.
@@ -32,7 +35,17 @@ public final class Main {
             webServer.stop();
         }
     }
-    
+
+    public static void setMinecraftServer(MinecraftServer server) {
+        if (webServer != null) {
+           minecraftServer = server;
+        }
+    }
+
+    public static MinecraftServer getMinecraftServer() {
+        return minecraftServer;
+    }
+
     public static WebServer getWebServer() {
         return webServer;
     }

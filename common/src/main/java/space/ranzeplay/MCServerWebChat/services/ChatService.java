@@ -3,6 +3,7 @@ package space.ranzeplay.MCServerWebChat.services;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
+import space.ranzeplay.MCServerWebChat.Main;
 import space.ranzeplay.MCServerWebChat.handlers.WebSocketHandler;
 
 public class ChatService {
@@ -18,7 +19,7 @@ public class ChatService {
     }
 
     public void sendOTPToPlayer(String username, String otp) {
-        MinecraftServer server = MinecraftServer.getServer();
+        MinecraftServer server = Main.getMinecraftServer();
         if (server != null) {
             ServerPlayer player = server.getPlayerList().getPlayerByName(username);
             if (player != null) {
@@ -30,7 +31,7 @@ public class ChatService {
 
     public void broadcastWebMessage(String username, String message) {
         // Broadcast to in-game players
-        MinecraftServer server = MinecraftServer.getServer();
+        MinecraftServer server = Main.getMinecraftServer();
         if (server != null) {
             Component chatMessage = Component.literal("§b[Web] " + username + "§f: " + message);
             server.getPlayerList().broadcastSystemMessage(chatMessage, false);
