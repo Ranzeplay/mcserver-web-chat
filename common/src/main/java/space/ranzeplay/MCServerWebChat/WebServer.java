@@ -42,17 +42,26 @@ public class WebServer {
                         pipeline.addLast(new WebSocketHandler());
                         pipeline.addLast(new HttpStaticFileHandler());
                     }
-                });
+                })
+                .option(ChannelOption.SO_BACKLOG, 128)
+                .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            ChannelFuture f = b.bind(PORT).sync();
+            ChannelFuture f = b.bind(PORT);
+            f.addListener(future -> {
+                if (future.isSuccess()) {
+                    isRunning = true;
+                    System.out.println("MC Web Chat server started on port " + PORT);
+                } else {
+                    System.err.println("Failed to start MC Web Chat server: " + future.cause().getMessage());
+                    future.cause().printStackTrace();
+                }
+            });
             serverChannel = f.channel();
-            isRunning = true;
             
-            System.out.println("MC Web Chat server started on port " + PORT);
-            
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        } catch (Exception e) {
             System.err.println("Failed to start web server: " + e.getMessage());
+            e.printStackTrace();
+            stop();
         }
     }
 

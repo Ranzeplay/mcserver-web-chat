@@ -13,7 +13,12 @@ public final class Main {
         
         // Start the server in a separate thread to avoid blocking mod initialization
         Thread serverThread = new Thread(() -> {
-            webServer.start();
+            try {
+                webServer.start();
+            } catch (Exception e) {
+                System.err.println("Failed to start MC Web Chat server: " + e.getMessage());
+                e.printStackTrace();
+            }
         });
         serverThread.setDaemon(true);
         serverThread.setName("MC-Web-Chat-Server");
