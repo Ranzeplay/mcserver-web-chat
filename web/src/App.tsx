@@ -28,18 +28,23 @@ function App() {
         enableMockMode();
         setMessages(mockMessages);
         console.log('Running in mock mode for UI testing');
+        setIsConnected(true); // Mock connection as connected
+        return;
       }
 
       wsService.onMessage = handleServerMessage;
       wsService.onConnectionChange = setIsConnected;
       
+      // Small delay to ensure component is fully mounted
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       try {
+        console.log('Attempting to connect to WebSocket server...');
         await wsService.connect();
+        console.log('WebSocket connection established successfully');
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
-        if (!isMockMode) {
-          setAuthError('Failed to connect to server. Please try again.');
-        }
+        setAuthError(`Failed to connect to server: ${error instanceof Error ? error.message : 'Unknown error'}. Please ensure the server is running and try again.`);
       }
     };
 
