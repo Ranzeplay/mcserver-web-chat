@@ -48,17 +48,10 @@ public class WebServer {
                 .option(ChannelOption.SO_BACKLOG, 128)
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            ChannelFuture f = b.bind(PORT);
-            f.addListener(future -> {
-                if (future.isSuccess()) {
-                    isRunning = true;
-                    System.out.println("MC Web Chat server started on port " + PORT);
-                } else {
-                    System.err.println("Failed to start MC Web Chat server: " + future.cause().getMessage());
-                    future.cause().printStackTrace();
-                }
-            });
+            ChannelFuture f = b.bind(PORT).sync();
+            isRunning = true;
             serverChannel = f.channel();
+            System.out.println("MC Web Chat server started on port " + PORT);
             
         } catch (Exception e) {
             System.err.println("Failed to start web server: " + e.getMessage());
