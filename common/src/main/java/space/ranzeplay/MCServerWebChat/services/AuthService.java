@@ -3,6 +3,7 @@ package space.ranzeplay.MCServerWebChat.services;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -13,18 +14,19 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class AuthService {
     private static AuthService instance;
-    private final Map<String, String> users = new ConcurrentHashMap<>(); // username -> hashed password
+    private final Map<String, String> users = new ConcurrentHashMap<>(); // username -> hashed password (cached)
     private final Map<String, String> pendingOTPs = new ConcurrentHashMap<>(); // username -> OTP
     private final Map<String, Long> otpTimestamps = new ConcurrentHashMap<>(); // username -> timestamp
     private final Map<String, String> pendingPasswords = new ConcurrentHashMap<>(); // username -> password (for OTP flow)
     private final SecretKey jwtKey = Keys.hmacShaKeyFor("my-very-secure-jwt-secret-key-for-mcserver-web-chat".getBytes(StandardCharsets.UTF_8));
     private final Random random = new Random();
-    private final DataPersistenceService persistenceService;
+    private final DatabaseService databaseService;
 
     private AuthService() {
-        this.persistenceService = DataPersistenceService.getInstance();
+        this.databaseService = DatabaseService.getInstance();
         loadUsers();
     }
 
@@ -36,7 +38,8 @@ public class AuthService {
     }
 
     public boolean userExists(String username) {
-        return users.containsKey(username);
+        // Check database directly for most up-to-date info
+        return databaseService.userExists(username);
     }
 
     public String generateOTP(String username, String password) {
@@ -45,6 +48,7 @@ public class AuthService {
         otpTimestamps.put(username, System.currentTimeMillis());
         // Store password for later use in OTP verification
         pendingPasswords.put(username, password);
+        log.debug("Generated OTP for user: {}", username);
         return otp;
     }
 
@@ -53,6 +57,7 @@ public class AuthService {
         Long timestamp = otpTimestamps.get(username);
         
         if (expectedOTP == null || timestamp == null) {
+            log.debug("OTP verification failed for {}: no pending OTP found", username);
             return false;
         }
         
@@ -61,6 +66,7 @@ public class AuthService {
             pendingOTPs.remove(username);
             otpTimestamps.remove(username);
             pendingPasswords.remove(username);
+            log.debug("OTP verification failed for {}: OTP expired", username);
             return false;
         }
         
@@ -69,6 +75,9 @@ public class AuthService {
             pendingOTPs.remove(username);
             otpTimestamps.remove(username);
             // Don't remove pending password yet - we need it for user creation
+            log.debug("OTP verification successful for {}", username);
+        } else {
+            log.debug("OTP verification failed for {}: invalid OTP", username);
         }
         
         return valid;
@@ -76,30 +85,41 @@ public class AuthService {
 
     public String createUser(String username, String password) {
         String hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+        
+        // Save to database
+        databaseService.saveUser(username, hashedPassword);
+        
+        // Update cache
         users.put(username, hashedPassword);
-        saveUsers();
+        
+        log.info("Created new user: {}", username);
         return generateJWT(username);
     }
 
     public String createUserFromOTP(String username) {
         String password = pendingPasswords.remove(username);
         if (password == null) {
+            log.warn("No pending password found for user: {}", username);
             return null; // No pending password found
         }
         return createUser(username, password);
     }
 
     public String authenticate(String username, String password) {
-        String hashedPassword = users.get(username);
+        // Get from database (most up-to-date)
+        String hashedPassword = databaseService.getUserHashedPassword(username);
         if (hashedPassword == null) {
+            log.debug("Authentication failed for {}: user not found", username);
             return null;
         }
         
         BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), hashedPassword);
         if (result.verified) {
+            log.debug("Authentication successful for {}", username);
             return generateJWT(username);
         }
         
+        log.debug("Authentication failed for {}: invalid password", username);
         return null;
     }
 
@@ -123,6 +143,7 @@ public class AuthService {
                 .parseSignedClaims(token);
             return true;
         } catch (Exception e) {
+            log.debug("JWT validation failed: {}", e.getMessage());
             return false;
         }
     }
@@ -136,22 +157,17 @@ public class AuthService {
                     .getPayload()
                     .getSubject();
         } catch (Exception e) {
+            log.debug("Failed to extract username from JWT: {}", e.getMessage());
             return null;
         }
     }
 
     /**
-     * Load users from persistent storage
+     * Load users from persistent storage into cache
      */
     private void loadUsers() {
-        Map<String, String> loadedUsers = persistenceService.loadUsers();
+        Map<String, String> loadedUsers = databaseService.loadAllUsers();
         users.putAll(loadedUsers);
-    }
-
-    /**
-     * Save users to persistent storage
-     */
-    private void saveUsers() {
-        persistenceService.saveUsers(users);
+        log.info("Loaded {} users from database", loadedUsers.size());
     }
 }
