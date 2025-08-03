@@ -107,7 +107,7 @@ function App() {
     }
   };
 
-  const handleAuth = (username: string, password?: string) => {
+  const handleAuth = (username: string, password: string) => {
     setAuthMode('authenticating');
     setAuthError(null);
     wsService.sendMessage({ type: 'auth', username, password });

@@ -97,6 +97,12 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.form-group input:disabled {
+  background: var(--disabled-input-bg, #f5f5f5);
+  color: var(--disabled-text-color, #888);
+  cursor: not-allowed;
+}
+
 .auth-form button[type="submit"] {
   padding: 0.875rem;
   background: var(--primary-color, #667eea);
@@ -143,7 +149,7 @@
   border-left: 3px solid var(--success-color, #27ae60);
 }
 
-.register-info {
+.auth-info {
   font-size: 0.85rem;
   color: var(--secondary-color, #666);
   margin: 1rem 0 0 0;
@@ -163,6 +169,8 @@
     --button-hover-bg: #5a5a6a;
     --input-bg: #3a3a4a;
     --disabled-bg: #666;
+    --disabled-input-bg: #2a2a3a;
+    --disabled-text-color: #888;
     --error-color: #ff6b6b;
     --success-color: #51cf66;
   }
