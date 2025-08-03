@@ -9,4 +9,12 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
 
     modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+    
+    // Web server dependencies
+    implementation 'io.netty:netty-all:4.1.100.Final'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-gson:0.12.3'
+    implementation 'at.favre.lib:bcrypt:0.10.2'
 }
