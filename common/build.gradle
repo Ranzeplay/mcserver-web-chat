@@ -10,8 +10,14 @@ dependencies {
 
     modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
     
-    // Web server dependencies
-    implementation 'io.netty:netty-all:4.1.100.Final'
+    // Web server dependencies - using individual Netty modules instead of netty-all
+    implementation 'io.netty:netty-handler:4.1.100.Final'
+    implementation 'io.netty:netty-codec-http:4.1.100.Final'
+    implementation 'io.netty:netty-transport:4.1.100.Final'
+    implementation 'io.netty:netty-common:4.1.100.Final'
+    implementation 'io.netty:netty-buffer:4.1.100.Final'
+    implementation 'io.netty:netty-transport-native-epoll:4.1.100.Final'
+    implementation 'io.netty:netty-transport-native-kqueue:4.1.100.Final'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
