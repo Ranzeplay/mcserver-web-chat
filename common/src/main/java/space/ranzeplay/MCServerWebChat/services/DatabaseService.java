@@ -207,7 +207,7 @@ public class DatabaseService {
             }
             
             // Reverse the list since we want oldest first but queried newest first
-            messages = messages.reversed();
+            java.util.Collections.reverse(messages);
             log.debug("Loaded {} chat messages from database", messages.size());
         } catch (SQLException e) {
             log.error("Failed to load chat messages: {}", e.getMessage(), e);

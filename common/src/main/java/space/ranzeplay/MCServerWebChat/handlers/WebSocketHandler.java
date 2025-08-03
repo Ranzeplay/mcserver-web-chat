@@ -6,6 +6,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import space.ranzeplay.MCServerWebChat.models.UserState;
 import space.ranzeplay.MCServerWebChat.services.AuthService;
 import space.ranzeplay.MCServerWebChat.services.ChatService;
@@ -13,6 +14,7 @@ import space.ranzeplay.MCServerWebChat.services.MessageHistoryService;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
     private static final ConcurrentHashMap<ChannelHandlerContext, String> authenticatedConnections = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<ChannelHandlerContext, UserState> connectionStates = new ConcurrentHashMap<>();
@@ -31,12 +33,31 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     public void channelActive(ChannelHandlerContext ctx) {
         // Initialize connection state
         connectionStates.put(ctx, UserState.UNAUTHENTICATED);
+        log.debug("New WebSocket connection established: {}", ctx.channel().remoteAddress());
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        // Clean up connection data
+        String username = authenticatedConnections.remove(ctx);
+        connectionStates.remove(ctx);
+        pendingUsernames.remove(ctx);
+        
+        if (username != null) {
+            log.info("User {} disconnected", username);
+        } else {
+            log.debug("Unauthenticated connection disconnected: {}", ctx.channel().remoteAddress());
+        }
+        
+        super.channelInactive(ctx);
     }
 
     private void handleTextMessage(ChannelHandlerContext ctx, String message) {
         try {
             JsonObject json = gson.fromJson(message, JsonObject.class);
             String type = json.get("type").getAsString();
+
+            log.debug("Received WebSocket message type: {} from {}", type, ctx.channel().remoteAddress());
 
             switch (type) {
                 case "auth":
@@ -49,9 +70,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
                     handleChatMessage(ctx, json);
                     break;
                 default:
+                    log.warn("Unknown message type: {} from {}", type, ctx.channel().remoteAddress());
                     sendError(ctx, "Unknown message type: " + type);
             }
         } catch (Exception e) {
+            log.warn("Invalid message format from {}: {}", ctx.channel().remoteAddress(), e.getMessage());
             sendError(ctx, "Invalid message format: " + e.getMessage());
         }
     }
@@ -62,28 +85,34 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         String username = json.get("username").getAsString();
         String password = json.has("password") ? json.get("password").getAsString() : null;
 
+        log.debug("Authentication attempt for user: {}", username);
         AuthService authService = AuthService.getInstance();
         
         if (password != null) {
             // Login attempt with password
             if (authService.userExists(username)) {
                 // Existing user - authenticate
+                log.debug("Existing user {} attempting login", username);
                 String token = authService.authenticate(username, password);
                 if (token != null) {
                     setConnectionState(ctx, UserState.AUTHENTICATED, username);
                     sendAuthSuccess(ctx, token, username);
                     MessageHistoryService.getInstance().sendHistoryToClient(ctx);
+                    log.info("User {} successfully authenticated", username);
                 } else {
+                    log.warn("Authentication failed for user {}: invalid credentials", username);
                     sendAuthFailure(ctx, "Invalid credentials");
                 }
             } else {
                 // New user - start OTP process
+                log.info("New user {} starting registration process", username);
                 String otp = authService.generateOTP(username, password);
                 ChatService.getInstance().sendOTPToPlayer(username, otp);
                 setConnectionState(ctx, UserState.OTP_REQUIRED, username);
                 sendOTPRequired(ctx, "OTP sent to in-game chat");
             }
         } else {
+            log.warn("Authentication attempt without password from {}", ctx.channel().remoteAddress());
             sendAuthFailure(ctx, "Password is required");
         }
     }
@@ -92,18 +121,20 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         UserState currentState = connectionStates.get(ctx);
         
         if (currentState != UserState.OTP_REQUIRED) {
+            log.warn("OTP verification attempted in invalid state {} from {}", currentState, ctx.channel().remoteAddress());
             sendError(ctx, "OTP verification not required in current state");
             return;
         }
         
         String username = pendingUsernames.get(ctx);
         if (username == null) {
+            log.warn("OTP verification attempted without pending username from {}", ctx.channel().remoteAddress());
             sendError(ctx, "No pending OTP verification");
             return;
         }
         
         String otp = json.get("otp").getAsString();
-        // Password is no longer required - it was stored during auth stage
+        log.debug("OTP verification attempt for user: {}", username);
 
         AuthService authService = AuthService.getInstance();
         
@@ -114,10 +145,13 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
                 setConnectionState(ctx, UserState.AUTHENTICATED, username);
                 sendAuthSuccess(ctx, token, username);
                 MessageHistoryService.getInstance().sendHistoryToClient(ctx);
+                log.info("User {} successfully registered and authenticated via OTP", username);
             } else {
+                log.error("Failed to create user account for {} after OTP verification", username);
                 sendAuthFailure(ctx, "Failed to create user account");
             }
         } else {
+            log.warn("Invalid OTP provided for user: {}", username);
             sendAuthFailure(ctx, "Invalid OTP");
         }
     }
@@ -126,19 +160,22 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         UserState currentState = connectionStates.get(ctx);
         
         if (currentState != UserState.AUTHENTICATED) {
+            log.warn("Chat message attempted from unauthenticated connection: {}", ctx.channel().remoteAddress());
             sendError(ctx, "Not authenticated");
             return;
         }
         
         String username = authenticatedConnections.get(ctx);
         if (username == null) {
+            log.error("Chat message attempted but no username found for authenticated connection: {}", ctx.channel().remoteAddress());
             sendError(ctx, "Authentication error");
             return;
         }
 
         String message = json.get("message").getAsString();
+        log.debug("Chat message from {}: {}", username, message);
+        
         ChatService.getInstance().broadcastWebMessage(username, message);
-        MessageHistoryService.getInstance().addMessage(username, message, "web");
     }
 
     /**
