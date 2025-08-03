@@ -38,6 +38,14 @@ dependencies {
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
+    
+    // Include external dependencies from common module for shading
+    shadowBundle 'io.netty:netty-all:4.1.100.Final'
+    shadowBundle 'com.google.code.gson:gson:2.10.1'
+    shadowBundle 'io.jsonwebtoken:jjwt-api:0.12.3'
+    shadowBundle 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    shadowBundle 'io.jsonwebtoken:jjwt-gson:0.12.3'
+    shadowBundle 'at.favre.lib:bcrypt:0.10.2'
 }
 
 processResources {
@@ -51,6 +59,12 @@ processResources {
 shadowJar {
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = 'dev-shadow'
+    
+    // Relocate Netty packages to avoid conflicts with Minecraft's Netty
+    relocate 'io.netty', 'space.ranzeplay.MCServerWebChat.shaded.io.netty'
+    relocate 'com.google.gson', 'space.ranzeplay.MCServerWebChat.shaded.com.google.gson'
+    relocate 'io.jsonwebtoken', 'space.ranzeplay.MCServerWebChat.shaded.io.jsonwebtoken'
+    relocate 'at.favre.lib.crypto', 'space.ranzeplay.MCServerWebChat.shaded.at.favre.lib.crypto'
 }
 
 remapJar {
