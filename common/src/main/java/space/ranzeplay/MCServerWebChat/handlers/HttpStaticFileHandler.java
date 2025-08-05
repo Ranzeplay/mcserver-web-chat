@@ -5,9 +5,9 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -45,7 +45,7 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
         
         if (inputStream != null) {
             try {
-                byte[] content = inputStream.readAllBytes();
+                byte[] content = readAllBytes(inputStream);
                 String contentType = getContentType(uri);
                 sendResponse(ctx, content, contentType);
             } catch (IOException e) {
@@ -64,7 +64,7 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
                 inputStream = getClass().getClassLoader().getResourceAsStream(resourcePath);
                 if (inputStream != null) {
                     try {
-                        byte[] content = inputStream.readAllBytes();
+                        byte[] content = readAllBytes(inputStream);
                         sendResponse(ctx, content, "text/html; charset=UTF-8");
                     } catch (IOException e) {
                         sendError(ctx, INTERNAL_SERVER_ERROR);
@@ -117,5 +117,15 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
                 HTTP_1_1, status, Unpooled.copiedBuffer("Error: " + status, CharsetUtil.UTF_8));
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+    
+    private byte[] readAllBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] data = new byte[8192];
+        int nRead;
+        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        return buffer.toByteArray();
     }
 }
