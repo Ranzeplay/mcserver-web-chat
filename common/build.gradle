@@ -10,3 +10,41 @@ dependencies {
 
     modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
 }
+
+// Frontend build tasks
+task checkPnpm {
+    doLast {
+        try {
+            exec {
+                commandLine 'pnpm', '--version'
+            }
+        } catch (Exception e) {
+            throw new GradleException("pnpm is not installed. Please install pnpm to build the frontend.")
+        }
+    }
+}
+
+task buildFrontend(dependsOn: checkPnpm) {
+    inputs.dir("${rootProject.projectDir}/web/src")
+    inputs.file("${rootProject.projectDir}/web/package.json")
+    inputs.file("${rootProject.projectDir}/web/pnpm-lock.yaml")
+    outputs.dir("${rootProject.projectDir}/web/dist")
+    
+    doLast {
+        exec {
+            workingDir "${rootProject.projectDir}/web"
+            commandLine 'pnpm', 'install'
+        }
+        exec {
+            workingDir "${rootProject.projectDir}/web"
+            commandLine 'pnpm', 'build'
+        }
+    }
+}
+
+task copyFrontendAssets(type: Copy, dependsOn: buildFrontend) {
+    from "${rootProject.projectDir}/web/dist"
+    into "${project.buildDir}/resources/main/static"
+}
+
+processResources.dependsOn copyFrontendAssets
