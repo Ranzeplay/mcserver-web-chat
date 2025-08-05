@@ -29,6 +29,12 @@ function App() {
         setMessages(mockMessages);
         console.log('Running in mock mode for UI testing');
         setIsConnected(true); // Mock connection as connected
+        // Auto-authenticate in mock mode
+        setAuthState({
+          isAuthenticated: true,
+          username: 'MockUser',
+          token: 'mock-token-123'
+        });
         return;
       }
 
