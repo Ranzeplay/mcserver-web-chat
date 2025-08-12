@@ -19,6 +19,7 @@ function App() {
   const [otpMessage, setOtpMessage] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sentMessageIds, setSentMessageIds] = useState<Set<string>>(new Set());
+  const [playerList, setPlayerList] = useState<string[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [wsService] = useState(() => new WebSocketService());
   
@@ -89,6 +90,11 @@ function App() {
         });
         setAuthMode('idle');
         setAuthError(null);
+        
+        // Update player list if provided
+        if (message.serverInfo?.playerList) {
+          setPlayerList(message.serverInfo.playerList);
+        }
         break;
         
       case 'auth_failure':
@@ -136,6 +142,37 @@ function App() {
           };
           setMessages(prev => [...prev, chatMessage]);
         }
+        break;
+      }
+        
+      case 'player_join': {
+        const joinMessage: ChatMessage = {
+          username: 'System',
+          message: `${message.username} joined the game`,
+          timestamp: new Date(),
+          source: 'game'
+        };
+        setMessages(prev => [...prev, joinMessage]);
+        // Add to player list if not already there
+        setPlayerList(prev => prev.includes(message.username) ? prev : [...prev, message.username]);
+        break;
+      }
+      
+      case 'player_leave': {
+        const leaveMessage: ChatMessage = {
+          username: 'System',
+          message: `${message.username} left the game`,
+          timestamp: new Date(),
+          source: 'game'
+        };
+        setMessages(prev => [...prev, leaveMessage]);
+        // Remove from player list
+        setPlayerList(prev => prev.filter(name => name !== message.username));
+        break;
+      }
+      
+      case 'player_list_update': {
+        setPlayerList(message.playerList);
         break;
       }
         
@@ -190,6 +227,7 @@ function App() {
     });
     setMessages([]);
     setSentMessageIds(new Set());
+    setPlayerList([]);
     setAuthMode('idle');
     setAuthError(null);
     setOtpMessage(null);
@@ -238,13 +276,14 @@ function App() {
         onMinimize={() => setIsChatMinimized(true)}
         onRestore={() => setIsChatMinimized(false)}
         defaultPosition={{ x: 50, y: 50 }}
-        width={700}
+        width={900}
         height={600}
       >
         <Chat
           messages={messages}
           currentUsername={authState.username!}
           isConnected={isConnected}
+          playerList={playerList}
           onSendMessage={handleSendMessage}
           onDisconnect={handleDisconnect}
         />

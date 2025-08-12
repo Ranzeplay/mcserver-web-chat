@@ -7,10 +7,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 import space.ranzeplay.MCServerWebChat.Main;
 import space.ranzeplay.MCServerWebChat.handlers.WebSocketHandler;
+import space.ranzeplay.MCServerWebChat.services.I18nService;
 
 @Slf4j
 public class ChatService {
     private static ChatService instance;
+    private String serverLanguage = "en-us"; // Default language, could be configurable
 
     private ChatService() {}
 
@@ -21,17 +23,22 @@ public class ChatService {
         return instance;
     }
 
+    public void setServerLanguage(String language) {
+        this.serverLanguage = language;
+        log.info("Server language set to: {}", language);
+    }
+
     public void sendOTPToPlayer(String username, String otp) {
         MinecraftServer server = Main.getMinecraftServer();
         if (server != null) {
             ServerPlayer player = server.getPlayerList().getPlayerByName(username);
             if (player != null) {
-                Component message = Component.empty()
-                    .append(Component.literal("[Web Chat] Your OTP code is: ").withStyle(ChatFormatting.YELLOW))
-                    .append(Component.literal(otp).withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD)
-                    .append(Component.literal(". Enter this code in the web browser to complete registration.").withStyle(ChatFormatting.YELLOW)));
+                I18nService i18n = I18nService.getInstance();
+                String otpMessage = i18n.getMessage("otp.message", serverLanguage, otp);
+                
+                Component message = Component.literal("[Web Chat] " + otpMessage).withStyle(ChatFormatting.YELLOW);
                 player.sendSystemMessage(message);
-                log.info("Sent OTP to player {}", username);
+                log.info("Sent OTP to player {} in language {}", username, serverLanguage);
             } else {
                 log.warn("Player {} not found when trying to send OTP", username);
             }
@@ -40,7 +47,7 @@ public class ChatService {
         }
     }
 
-    public void broadcastWebMessage(String username, String message) {
+    public void broadcastWebMessage(String username, String message, String messageId) {
         // Broadcast to in-game players
         MinecraftServer server = Main.getMinecraftServer();
         if (server != null) {
@@ -53,12 +60,17 @@ public class ChatService {
             log.debug("Broadcasted web message from {} to in-game players", username);
         }
         
-        // Also broadcast to other web clients
-        WebSocketHandler.broadcastToWebClients("§b[Web] " + username + "§f: " + message);
+        // Also broadcast to other web clients with message ID
+        WebSocketHandler.broadcastToWebClients("§b[Web] " + username + "§f: " + message, messageId);
         log.debug("Broadcasted web message from {} to web clients", username);
         
         // Store in history
         MessageHistoryService.getInstance().addMessage(username, message, "web");
+    }
+
+    // Overloaded method for backward compatibility
+    public void broadcastWebMessage(String username, String message) {
+        broadcastWebMessage(username, message, null);
     }
 
     public void broadcastGameMessage(String username, String message) {

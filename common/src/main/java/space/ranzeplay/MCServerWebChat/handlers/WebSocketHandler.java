@@ -11,6 +11,7 @@ import space.ranzeplay.MCServerWebChat.models.UserState;
 import space.ranzeplay.MCServerWebChat.services.AuthService;
 import space.ranzeplay.MCServerWebChat.services.ChatService;
 import space.ranzeplay.MCServerWebChat.services.MessageHistoryService;
+import space.ranzeplay.MCServerWebChat.services.PlayerEventService;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -202,9 +203,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         }
 
         String message = json.get("message").getAsString();
+        String messageId = json.has("messageId") ? json.get("messageId").getAsString() : null;
         log.debug("Chat message from {}: {}", username, message);
         
-        ChatService.getInstance().broadcastWebMessage(username, message);
+        ChatService.getInstance().broadcastWebMessage(username, message, messageId);
     }
 
     /**
@@ -233,6 +235,14 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         response.addProperty("type", "auth_success");
         response.addProperty("token", token);
         response.addProperty("username", username);
+        
+        // Add server info
+        JsonObject serverInfo = new JsonObject();
+        PlayerEventService playerEventService = PlayerEventService.getInstance();
+        serverInfo.addProperty("playerCount", playerEventService.getCurrentPlayerCount());
+        serverInfo.add("playerList", gson.toJsonTree(playerEventService.getCurrentPlayerList()));
+        response.add("serverInfo", serverInfo);
+        
         ctx.writeAndFlush(new TextWebSocketFrame(gson.toJson(response)));
     }
 
@@ -258,9 +268,16 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     }
 
     public static void broadcastToWebClients(String message) {
+        broadcastToWebClients(message, null);
+    }
+
+    public static void broadcastToWebClients(String message, String messageId) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "chat");
         json.addProperty("message", message);
+        if (messageId != null) {
+            json.addProperty("messageId", messageId);
+        }
         String jsonString = gson.toJson(json);
 
         for (ChannelHandlerContext ctx : authenticatedConnections.keySet()) {
@@ -268,5 +285,47 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
                 ctx.writeAndFlush(new TextWebSocketFrame(jsonString));
             }
         }
+    }
+
+    public static void broadcastPlayerJoin(String username) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "player_join");
+        json.addProperty("username", username);
+        String jsonString = gson.toJson(json);
+
+        for (ChannelHandlerContext ctx : authenticatedConnections.keySet()) {
+            if (ctx.channel().isActive()) {
+                ctx.writeAndFlush(new TextWebSocketFrame(jsonString));
+            }
+        }
+        log.debug("Broadcasted player join event for: {}", username);
+    }
+
+    public static void broadcastPlayerLeave(String username) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "player_leave");
+        json.addProperty("username", username);
+        String jsonString = gson.toJson(json);
+
+        for (ChannelHandlerContext ctx : authenticatedConnections.keySet()) {
+            if (ctx.channel().isActive()) {
+                ctx.writeAndFlush(new TextWebSocketFrame(jsonString));
+            }
+        }
+        log.debug("Broadcasted player leave event for: {}", username);
+    }
+
+    public static void broadcastPlayerListUpdate(java.util.List<String> playerList) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "player_list_update");
+        json.add("playerList", gson.toJsonTree(playerList));
+        String jsonString = gson.toJson(json);
+
+        for (ChannelHandlerContext ctx : authenticatedConnections.keySet()) {
+            if (ctx.channel().isActive()) {
+                ctx.writeAndFlush(new TextWebSocketFrame(jsonString));
+            }
+        }
+        log.debug("Broadcasted player list update: {}", playerList);
     }
 }
