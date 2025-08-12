@@ -4,6 +4,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.PlayerList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,9 +17,9 @@ import space.ranzeplay.MCServerWebChat.services.PlayerEventService;
 public class PlayerListMixin {
 
     @Inject(method = "placeNewPlayer", at = @At("TAIL"))
-    private void onPlayerJoin(Connection connection, ServerPlayer player, CallbackInfo ci) {
+    private void onPlayerJoin(Connection connection, ServerPlayer serverPlayer, CommonListenerCookie commonListenerCookie, CallbackInfo ci) {
         try {
-            PlayerEventService.getInstance().onPlayerJoin(player);
+            PlayerEventService.getInstance().onPlayerJoin(serverPlayer);
         } catch (Exception e) {
             // Don't let mixin errors crash the game
             System.err.println("MC Web Chat: Error in player join mixin: " + e.getMessage());
