@@ -1,6 +1,7 @@
 package space.ranzeplay.MCServerWebChat.services;
 
 import lombok.extern.slf4j.Slf4j;
+import net.minecraft.ChatFormatting;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
@@ -25,7 +26,10 @@ public class ChatService {
         if (server != null) {
             ServerPlayer player = server.getPlayerList().getPlayerByName(username);
             if (player != null) {
-                Component message = Component.literal("§6[Web Chat] Your OTP code is: §e" + otp + "§6. Enter this code in the web browser to complete registration.");
+                Component message = Component.empty()
+                    .append(Component.literal("[Web Chat] Your OTP code is: ").withStyle(ChatFormatting.YELLOW))
+                    .append(Component.literal(otp).withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD)
+                    .append(Component.literal(". Enter this code in the web browser to complete registration.").withStyle(ChatFormatting.YELLOW)));
                 player.sendSystemMessage(message);
                 log.info("Sent OTP to player {}", username);
             } else {
@@ -40,7 +44,11 @@ public class ChatService {
         // Broadcast to in-game players
         MinecraftServer server = Main.getMinecraftServer();
         if (server != null) {
-            Component chatMessage = Component.literal("§b[Web] " + username + "§f: " + message);
+            Component chatMessage = Component.empty()
+                    .append(Component.literal("<"))
+                    .append(Component.literal(username).withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC))
+                    .append(Component.literal("> "))
+                    .append(Component.literal(message));
             server.getPlayerList().broadcastSystemMessage(chatMessage, false);
             log.debug("Broadcasted web message from {} to in-game players", username);
         }

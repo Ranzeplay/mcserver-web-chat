@@ -1,5 +1,6 @@
 package space.ranzeplay.MCServerWebChat;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.server.MinecraftServer;
 
@@ -8,7 +9,9 @@ import java.nio.file.Path;
 @Slf4j
 public final class Main {
     public static final String MOD_ID = "mcserver-web-chat";
+    @Getter
     private static WebServer webServer;
+    @Getter
     private static MinecraftServer minecraftServer;
 
     public static Path getRootConfigDir() {
@@ -53,11 +56,4 @@ public final class Main {
         }
     }
 
-    public static MinecraftServer getMinecraftServer() {
-        return minecraftServer;
-    }
-
-    public static WebServer getWebServer() {
-        return webServer;
-    }
 }
