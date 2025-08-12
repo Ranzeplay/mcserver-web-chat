@@ -63,6 +63,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
                 case "auth":
                     handleAuth(ctx, json);
                     break;
+                case "auth_token":
+                    handleTokenAuth(ctx, json);
+                    break;
                 case "otp_verify":
                     handleOtpVerify(ctx, json);
                     break;
@@ -76,6 +79,32 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         } catch (Exception e) {
             log.warn("Invalid message format from {}: {}", ctx.channel().remoteAddress(), e.getMessage());
             sendError(ctx, "Invalid message format: " + e.getMessage());
+        }
+    }
+
+    private void handleTokenAuth(ChannelHandlerContext ctx, JsonObject json) {
+        UserState currentState = connectionStates.get(ctx);
+        
+        if (currentState != UserState.UNAUTHENTICATED) {
+            log.warn("Token authentication attempted in invalid state {} from {}", currentState, ctx.channel().remoteAddress());
+            sendError(ctx, "Already authenticated or in authentication process");
+            return;
+        }
+        
+        String token = json.get("token").getAsString();
+        log.debug("Token authentication attempt from {}", ctx.channel().remoteAddress());
+        
+        AuthService authService = AuthService.getInstance();
+        String username = authService.validateToken(token);
+        
+        if (username != null) {
+            setConnectionState(ctx, UserState.AUTHENTICATED, username);
+            sendAuthSuccess(ctx, token, username);
+            MessageHistoryService.getInstance().sendHistoryToClient(ctx);
+            log.info("User {} successfully authenticated via token", username);
+        } else {
+            log.warn("Invalid token provided from {}", ctx.channel().remoteAddress());
+            sendAuthFailure(ctx, "Invalid or expired token");
         }
     }
 

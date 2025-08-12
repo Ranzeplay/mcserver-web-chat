@@ -12,7 +12,7 @@ export default function ChatMessage({ username, message, timestamp, source, isOw
   };
 
   return (
-    <div className={`mb-3 p-3 rounded-xl border transition-all duration-100 hover:transform hover:-translate-y-0.5 hover:shadow-md ${
+    <div className={`mb-3 p-3 border transition-all duration-100 ${
       isOwnMessage 
         ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 ml-8' 
         : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'

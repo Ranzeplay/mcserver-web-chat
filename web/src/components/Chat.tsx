@@ -55,7 +55,7 @@ export default function Chat({ messages, currentUsername, isConnected, onSendMes
                 ? 'text-green-600 dark:text-green-400' 
                 : 'text-red-600 dark:text-red-400'
             }`}>
-              <div className={`w-2 h-2 rounded-full ${
+              <div className={`w-2 h-2 ${
                 isConnected ? 'bg-green-500' : 'bg-red-500'
               }`}></div>
               {isConnected ? 'Connected' : 'Disconnected'}
@@ -64,7 +64,7 @@ export default function Chat({ messages, currentUsername, isConnected, onSendMes
         </div>
         <button 
           onClick={onDisconnect}
-          className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white font-medium rounded text-sm transition-colors duration-200"
+          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-medium text-sm transition-colors duration-200"
         >
           Logout
         </button>
@@ -104,12 +104,12 @@ export default function Chat({ messages, currentUsername, isConnected, onSendMes
             placeholder={isConnected ? "Type your message..." : "Connecting..."}
             disabled={!isConnected}
             maxLength={256}
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400 select-text"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400 select-text"
           />
           <button 
             type="submit" 
             disabled={!isConnected || !inputMessage.trim()}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-medium rounded text-sm transition-colors duration-200 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium text-sm transition-colors duration-200 disabled:cursor-not-allowed"
           >
             Send
           </button>

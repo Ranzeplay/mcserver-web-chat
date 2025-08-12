@@ -135,6 +135,29 @@ public class AuthService {
                 .compact();
     }
 
+    public String validateToken(String token) {
+        try {
+            String username = Jwts.parser()
+                    .verifyWith(jwtKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
+            
+            // Also verify the user still exists
+            if (userExists(username)) {
+                log.debug("Token validation successful for user: {}", username);
+                return username;
+            } else {
+                log.debug("Token validation failed: user {} no longer exists", username);
+                return null;
+            }
+        } catch (Exception e) {
+            log.debug("Token validation failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
     public boolean validateJWT(String token) {
         try {
             Jwts.parser()

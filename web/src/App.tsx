@@ -4,6 +4,7 @@ import Chat from './components/Chat';
 import DraggableWindow from './components/DraggableWindow';
 import MinimizedWindow from './components/MinimizedWindow';
 import { WebSocketService, type ChatMessage, type AuthState, type ServerMessage } from './services/websocket';
+import { SessionService } from './services/sessionService';
 import { enableMockMode, mockMessages } from './services/mockData';
 import './App.css';
 
@@ -17,6 +18,7 @@ function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [otpMessage, setOtpMessage] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sentMessageIds, setSentMessageIds] = useState<Set<string>>(new Set());
   const [isConnected, setIsConnected] = useState(false);
   const [wsService] = useState(() => new WebSocketService());
   
@@ -54,6 +56,14 @@ function App() {
         console.log('Attempting to connect to WebSocket server...');
         await wsService.connect();
         console.log('WebSocket connection established successfully');
+        
+        // Check for existing session after connection
+        const savedSession = SessionService.getSession();
+        if (savedSession) {
+          console.log('Found saved session, attempting to restore...');
+          setAuthMode('authenticating');
+          wsService.sendMessage({ type: 'auth_token', token: savedSession.token });
+        }
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
         setAuthError(`Failed to connect to server: ${error instanceof Error ? error.message : 'Unknown error'}. Please ensure the server is running and try again.`);
@@ -70,6 +80,8 @@ function App() {
   const handleServerMessage = (message: ServerMessage) => {
     switch (message.type) {
       case 'auth_success':
+        // Save session data for persistence
+        SessionService.saveSession(message.token, message.username);
         setAuthState({
           isAuthenticated: true,
           username: message.username,
@@ -91,6 +103,13 @@ function App() {
         break;
         
       case 'chat': {
+        // Check if this is a message we sent and already have locally
+        if (message.messageId && sentMessageIds.has(message.messageId)) {
+          // This is our own message coming back, ignore it
+          console.log('Ignoring duplicate message:', message.messageId);
+          return;
+        }
+        
         // Parse the chat message which comes in format "username: message"
         const chatText = message.message;
         const colonIndex = chatText.indexOf(': ');
@@ -99,6 +118,7 @@ function App() {
           const messageText = chatText.substring(colonIndex + 2);
           
           const chatMessage: ChatMessage = {
+            id: message.messageId,
             username,
             message: messageText,
             timestamp: new Date(),
@@ -108,6 +128,7 @@ function App() {
         } else {
           // System message or malformed message
           const chatMessage: ChatMessage = {
+            id: message.messageId,
             username: 'System',
             message: chatText,
             timestamp: new Date(),
@@ -138,8 +159,12 @@ function App() {
 
   const handleSendMessage = (messageText: string) => {
     if (authState.username) {
+      // Generate a unique message ID
+      const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
       // Add message to local state immediately for better UX
       const localMessage: ChatMessage = {
+        id: messageId,
         username: authState.username,
         message: messageText,
         timestamp: new Date(),
@@ -147,18 +172,24 @@ function App() {
       };
       setMessages(prev => [...prev, localMessage]);
       
-      // Send to server
-      wsService.sendMessage({ type: 'chat', message: messageText });
+      // Track this message ID to prevent duplication
+      setSentMessageIds(prev => new Set([...prev, messageId]));
+      
+      // Send to server with message ID
+      wsService.sendMessage({ type: 'chat', message: messageText, messageId });
     }
   };
 
   const handleDisconnect = () => {
+    // Clear session data
+    SessionService.clearSession();
     setAuthState({
       isAuthenticated: false,
       username: null,
       token: null
     });
     setMessages([]);
+    setSentMessageIds(new Set());
     setAuthMode('idle');
     setAuthError(null);
     setOtpMessage(null);
@@ -167,7 +198,7 @@ function App() {
 
   if (!authState.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600">
+      <div className="min-h-screen bg-indigo-600">
         <DraggableWindow
           title="Login"
           isMinimized={isAuthMinimized}

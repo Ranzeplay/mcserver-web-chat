@@ -85,7 +85,7 @@ export default function DraggableWindow({
   return (
     <div
       ref={windowRef}
-      className={`fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl z-50 select-none ${className}`}
+      className={`fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-2xl z-50 select-none ${className}`}
       style={{
         left: position.x,
         top: position.y,
@@ -96,7 +96,7 @@ export default function DraggableWindow({
     >
       {/* Title Bar */}
       <div
-        className="window-title flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 rounded-t-lg cursor-grab active:cursor-grabbing select-none"
+        className="window-title flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 cursor-grab active:cursor-grabbing select-none"
         onMouseDown={handleMouseDown}
       >
         <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
@@ -105,11 +105,11 @@ export default function DraggableWindow({
         <div className="flex gap-2">
           <button
             onClick={onMinimize}
-            className="w-3 h-3 bg-yellow-500 hover:bg-yellow-600 rounded-full transition-colors duration-200"
+            className="w-3 h-3 bg-yellow-500 hover:bg-yellow-600 transition-colors duration-200"
             title="Minimize"
           />
-          <div className="w-3 h-3 bg-gray-400 rounded-full" />
-          <div className="w-3 h-3 bg-gray-400 rounded-full" />
+          <div className="w-3 h-3 bg-gray-400" />
+          <div className="w-3 h-3 bg-gray-400" />
         </div>
       </div>
       
