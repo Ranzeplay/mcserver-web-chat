@@ -33,7 +33,7 @@ export default function Auth({ onAuth, onOtpVerify, authState, error, otpMessage
         <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">🎮 Minecraft Web Chat</h2>
         <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-4">Verify OTP</h3>
         {otpMessage && (
-          <p className="text-green-700 dark:text-green-400 text-sm mb-4 p-3 bg-green-100 dark:bg-green-900/20 border-l-3 border-green-500 rounded-md">
+          <p className="text-green-700 dark:text-green-400 text-sm mb-4 p-3 bg-green-100 dark:bg-green-900/20 border-l-3 border-green-500">
             {otpMessage}
           </p>
         )}
@@ -50,7 +50,7 @@ export default function Auth({ onAuth, onOtpVerify, authState, error, otpMessage
               placeholder="Enter OTP"
               maxLength={6}
               required
-              className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/10 select-text"
+              className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/10 select-text"
             />
           </div>
           <div className="text-left">
@@ -64,13 +64,13 @@ export default function Auth({ onAuth, onOtpVerify, authState, error, otpMessage
               placeholder="Password saved securely"
               readOnly
               disabled
-              className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-base bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 text-base bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed"
             />
           </div>
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-2 px-4 py-3.5 bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-400 text-white font-semibold rounded-lg text-base cursor-pointer transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/30 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+            className="mt-2 px-4 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold text-base cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Verifying...' : 'Verify & Create Account'}
           </button>
@@ -100,7 +100,7 @@ export default function Auth({ onAuth, onOtpVerify, authState, error, otpMessage
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter your Minecraft username"
             required
-            className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/10 select-text"
+            className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/10 select-text"
           />
         </div>
         
@@ -115,21 +115,21 @@ export default function Auth({ onAuth, onOtpVerify, authState, error, otpMessage
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter password"
             required
-            className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/10 select-text"
+            className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/10 select-text"
           />
         </div>
         
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-2 px-4 py-3.5 bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-400 text-white font-semibold rounded-lg text-base cursor-pointer transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/30 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+          className="mt-2 px-4 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold text-base cursor-pointer transition-all duration-200 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Connecting...' : 'Login / Register'}
         </button>
       </form>
       
       {error && (
-        <p className="text-red-600 dark:text-red-400 text-sm mt-2 p-3 bg-red-100 dark:bg-red-900/20 border-l-3 border-red-500 rounded-md">
+        <p className="text-red-600 dark:text-red-400 text-sm mt-2 p-3 bg-red-100 dark:bg-red-900/20 border-l-3 border-red-500">
           {error}
         </p>
       )}

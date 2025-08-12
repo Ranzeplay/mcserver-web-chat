@@ -6,11 +6,12 @@ interface ChatProps {
   messages: ChatMessageType[];
   currentUsername: string;
   isConnected: boolean;
+  playerList: string[];
   onSendMessage: (message: string) => void;
   onDisconnect: () => void;
 }
 
-export default function Chat({ messages, currentUsername, isConnected, onSendMessage, onDisconnect }: ChatProps) {
+export default function Chat({ messages, currentUsername, isConnected, playerList, onSendMessage, onDisconnect }: ChatProps) {
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,83 +43,115 @@ export default function Chat({ messages, currentUsername, isConnected, onSendMes
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-800 select-none">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-        <div className="flex-1">
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-600 dark:text-gray-400">
-              <strong className="text-gray-800 dark:text-gray-200">{currentUsername}</strong>
-            </span>
-            <div className={`flex items-center gap-1.5 font-medium ${
-              isConnected 
-                ? 'text-green-600 dark:text-green-400' 
-                : 'text-red-600 dark:text-red-400'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${
-                isConnected ? 'bg-green-500' : 'bg-red-500'
-              }`}></div>
-              {isConnected ? 'Connected' : 'Disconnected'}
+    <div className="flex h-full bg-white dark:bg-gray-800 select-none">
+      {/* Main chat area */}
+      <div className="flex flex-col flex-1">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+          <div className="flex-1">
+            <div className="flex items-center gap-4 text-sm">
+              <span className="text-gray-600 dark:text-gray-400">
+                <strong className="text-gray-800 dark:text-gray-200">{currentUsername}</strong>
+              </span>
+              <div className={`flex items-center gap-1.5 font-medium ${
+                isConnected 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : 'text-red-600 dark:text-red-400'
+              }`}>
+                <div className={`w-2 h-2 ${
+                  isConnected ? 'bg-green-500' : 'bg-red-500'
+                }`}></div>
+                {isConnected ? 'Connected' : 'Disconnected'}
+              </div>
             </div>
           </div>
-        </div>
-        <button 
-          onClick={onDisconnect}
-          className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white font-medium rounded text-sm transition-colors duration-200"
-        >
-          Logout
-        </button>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-700">
-        {messages.length === 0 ? (
-          <div className="text-center mt-8 text-gray-500 dark:text-gray-400">
-            <p className="text-lg font-semibold mb-2">🎮 Welcome!</p>
-            <p className="text-sm">Start chatting with players...</p>
-          </div>
-        ) : (
-          messages.map((msg, index) => (
-            <ChatMessage
-              key={index}
-              username={msg.username}
-              message={msg.message}
-              timestamp={msg.timestamp}
-              source={msg.source}
-              isOwnMessage={msg.username === currentUsername}
-            />
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Form */}
-      <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200 dark:border-gray-600">
-        <div className="flex gap-2 mb-1">
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={isConnected ? "Type your message..." : "Connecting..."}
-            disabled={!isConnected}
-            maxLength={256}
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400 select-text"
-          />
           <button 
-            type="submit" 
-            disabled={!isConnected || !inputMessage.trim()}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-medium rounded text-sm transition-colors duration-200 disabled:cursor-not-allowed"
+            onClick={onDisconnect}
+            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-medium text-sm transition-colors duration-200"
           >
-            Send
+            Logout
           </button>
         </div>
-        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-          <span className="font-mono">{inputMessage.length}/256</span>
-          <span className="italic">Press Enter to send</span>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-3 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-700">
+          {messages.length === 0 ? (
+            <div className="text-center mt-8 text-gray-500 dark:text-gray-400">
+              <p className="text-lg font-semibold mb-2">🎮 Welcome!</p>
+              <p className="text-sm">Start chatting with players...</p>
+            </div>
+          ) : (
+            messages.map((msg, index) => (
+              <ChatMessage
+                key={index}
+                username={msg.username}
+                message={msg.message}
+                timestamp={msg.timestamp}
+                source={msg.source}
+                isOwnMessage={msg.username === currentUsername}
+              />
+            ))
+          )}
+          <div ref={messagesEndRef} />
         </div>
-      </form>
+
+        {/* Input Form */}
+        <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200 dark:border-gray-600">
+          <div className="flex gap-2 mb-1">
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={isConnected ? "Type your message..." : "Connecting..."}
+              disabled={!isConnected}
+              maxLength={256}
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400 select-text"
+            />
+            <button 
+              type="submit" 
+              disabled={!isConnected || !inputMessage.trim()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium text-sm transition-colors duration-200 disabled:cursor-not-allowed"
+            >
+              Send
+            </button>
+          </div>
+          <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+            <span className="font-mono">{inputMessage.length}/256</span>
+            <span className="italic">Press Enter to send</span>
+          </div>
+        </form>
+      </div>
+      
+      {/* Player list sidebar */}
+      <div className="w-48 bg-gray-50 dark:bg-gray-700 border-l border-gray-200 dark:border-gray-600">
+        <div className="p-3 bg-gray-100 dark:bg-gray-600 border-b border-gray-200 dark:border-gray-600">
+          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+            Online Players ({playerList.length})
+          </h3>
+        </div>
+        <div className="p-2 space-y-1 max-h-96 overflow-y-auto">
+          {playerList.length === 0 ? (
+            <div className="text-center text-gray-500 dark:text-gray-400 text-xs py-4">
+              No players online
+            </div>
+          ) : (
+            playerList.map((player) => (
+              <div
+                key={player}
+                className={`px-2 py-1 text-xs font-medium ${
+                  player === currentUsername
+                    ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                {player === currentUsername ? `${player} (You)` : player}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 export interface ChatMessage {
+  id?: string;
   username: string;
   message: string;
   timestamp: Date;
@@ -13,14 +14,18 @@ export interface AuthState {
 
 export type WebSocketMessage = 
   | { type: 'auth'; username: string; password?: string }
+  | { type: 'auth_token'; token: string }
   | { type: 'otp_verify'; otp: string }
-  | { type: 'chat'; message: string };
+  | { type: 'chat'; message: string; messageId?: string };
 
 export type ServerMessage = 
-  | { type: 'auth_success'; token: string; username: string }
+  | { type: 'auth_success'; token: string; username: string; serverInfo?: { playerCount: number; playerList: string[] } }
   | { type: 'auth_failure'; reason: string }
   | { type: 'otp_required'; message: string }
-  | { type: 'chat'; message: string }
+  | { type: 'chat'; message: string; messageId?: string }
+  | { type: 'player_join'; username: string }
+  | { type: 'player_leave'; username: string }
+  | { type: 'player_list_update'; playerList: string[] }
   | { type: 'error'; message: string };
 
 export class WebSocketService {
