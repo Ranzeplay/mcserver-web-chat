@@ -10,3 +10,55 @@ dependencies {
 
     modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
 }
+
+// Frontend build tasks
+tasks.register('checkPnpm') {
+    doLast {
+        try {
+            exec {
+                if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+                    commandLine 'cmd', '/c', 'pnpm', '--version'
+                } else {
+                    commandLine 'pnpm', '--version'
+                }
+            }
+        } catch (Exception e) {
+            throw e
+        }
+    }
+}
+
+tasks.register('buildFrontend') {
+    dependsOn checkPnpm
+    inputs.dir("${rootProject.projectDir}/web/src")
+    inputs.file("${rootProject.projectDir}/web/package.json")
+    inputs.file("${rootProject.projectDir}/web/pnpm-lock.yaml")
+    outputs.dir("${rootProject.projectDir}/web/dist")
+
+    doLast {
+        exec {
+            workingDir "${rootProject.projectDir}/web"
+            if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+                commandLine 'cmd', '/c', 'pnpm', 'install'
+            } else {
+                commandLine 'pnpm', 'install'
+            }
+        }
+        exec {
+            workingDir "${rootProject.projectDir}/web"
+            if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+                commandLine 'cmd', '/c', 'pnpm', 'build'
+            } else {
+                commandLine 'pnpm', 'build'
+            }
+        }
+    }
+}
+
+tasks.register('copyFrontendAssets', Copy) {
+    dependsOn buildFrontend
+    from "${rootProject.projectDir}/web/dist"
+    into sourceSets.main.output.resourcesDir
+}
+
+processResources.dependsOn copyFrontendAssets
