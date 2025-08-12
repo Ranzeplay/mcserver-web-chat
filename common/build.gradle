@@ -44,7 +44,7 @@ task buildFrontend(dependsOn: checkPnpm) {
 
 task copyFrontendAssets(type: Copy, dependsOn: buildFrontend) {
     from "${rootProject.projectDir}/web/dist"
-    into "${project.buildDir}/resources/main/static"
+    into sourceSets.main.output.resourcesDir
 }
 
 processResources.dependsOn copyFrontendAssets
