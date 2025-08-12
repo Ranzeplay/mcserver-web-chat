@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Auth from './components/Auth';
 import Chat from './components/Chat';
+import DraggableWindow from './components/DraggableWindow';
+import MinimizedWindow from './components/MinimizedWindow';
 import { WebSocketService, type ChatMessage, type AuthState, type ServerMessage } from './services/websocket';
 import { enableMockMode, mockMessages } from './services/mockData';
 import './App.css';
@@ -17,6 +19,10 @@ function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [wsService] = useState(() => new WebSocketService());
+  
+  // Window state management
+  const [isAuthMinimized, setIsAuthMinimized] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
 
   useEffect(() => {
     const initializeWebSocket = async () => {
@@ -161,25 +167,67 @@ function App() {
 
   if (!authState.isAuthenticated) {
     return (
-      <Auth
-        onAuth={handleAuth}
-        onOtpVerify={handleOtpVerify}
-        authState={authMode}
-        error={authError}
-        otpMessage={otpMessage}
-        isLoading={authMode === 'authenticating'}
-      />
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600">
+        <DraggableWindow
+          title="Login"
+          isMinimized={isAuthMinimized}
+          onMinimize={() => setIsAuthMinimized(true)}
+          onRestore={() => setIsAuthMinimized(false)}
+          defaultPosition={{ x: (window.innerWidth - 400) / 2, y: (window.innerHeight - 500) / 2 }}
+          width={400}
+          height={500}
+        >
+          <Auth
+            onAuth={handleAuth}
+            onOtpVerify={handleOtpVerify}
+            authState={authMode}
+            error={authError}
+            otpMessage={otpMessage}
+            isLoading={authMode === 'authenticating'}
+          />
+        </DraggableWindow>
+        
+        {/* Minimized window indicators */}
+        {isAuthMinimized && (
+          <MinimizedWindow
+            title="Login"
+            onRestore={() => setIsAuthMinimized(false)}
+            position={0}
+          />
+        )}
+      </div>
     );
   }
 
   return (
-    <Chat
-      messages={messages}
-      currentUsername={authState.username!}
-      isConnected={isConnected}
-      onSendMessage={handleSendMessage}
-      onDisconnect={handleDisconnect}
-    />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <DraggableWindow
+        title="Minecraft Web Chat"
+        isMinimized={isChatMinimized}
+        onMinimize={() => setIsChatMinimized(true)}
+        onRestore={() => setIsChatMinimized(false)}
+        defaultPosition={{ x: 50, y: 50 }}
+        width={700}
+        height={600}
+      >
+        <Chat
+          messages={messages}
+          currentUsername={authState.username!}
+          isConnected={isConnected}
+          onSendMessage={handleSendMessage}
+          onDisconnect={handleDisconnect}
+        />
+      </DraggableWindow>
+      
+      {/* Minimized window indicators */}
+      {isChatMinimized && (
+        <MinimizedWindow
+          title="Chat"
+          onRestore={() => setIsChatMinimized(false)}
+          position={0}
+        />
+      )}
+    </div>
   );
 }
 
