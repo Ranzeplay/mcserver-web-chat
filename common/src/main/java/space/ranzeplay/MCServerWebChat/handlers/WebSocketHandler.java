@@ -7,6 +7,10 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import space.ranzeplay.MCServerWebChat.Main;
 import space.ranzeplay.MCServerWebChat.models.UserState;
 import space.ranzeplay.MCServerWebChat.services.AuthService;
 import space.ranzeplay.MCServerWebChat.services.ChatService;
@@ -46,6 +50,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         
         if (username != null) {
             log.info("User {} disconnected", username);
+            // Notify in-game players about web user leaving
+            notifyInGamePlayers(username + " left the web chat");
         } else {
             log.debug("Unauthenticated connection disconnected: {}", ctx.channel().remoteAddress());
         }
@@ -206,7 +212,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         String messageId = json.has("messageId") ? json.get("messageId").getAsString() : null;
         log.debug("Chat message from {}: {}", username, message);
         
-        ChatService.getInstance().broadcastWebMessage(username, message, messageId);
+        ChatService.getInstance().broadcastWebMessage(username, message, messageId, ctx);
     }
 
     /**
@@ -244,6 +250,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         response.add("serverInfo", serverInfo);
         
         ctx.writeAndFlush(new TextWebSocketFrame(gson.toJson(response)));
+        
+        // Notify in-game players about web user joining
+        notifyInGamePlayers(username + " joined the web chat");
     }
 
     private void sendAuthFailure(ChannelHandlerContext ctx, String reason) {
@@ -272,6 +281,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     }
 
     public static void broadcastToWebClients(String message, String messageId) {
+        broadcastToWebClients(message, messageId, null);
+    }
+
+    public static void broadcastToWebClients(String message, String messageId, ChannelHandlerContext excludeCtx) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "chat");
         json.addProperty("message", message);
@@ -281,7 +294,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         String jsonString = gson.toJson(json);
 
         for (ChannelHandlerContext ctx : authenticatedConnections.keySet()) {
-            if (ctx.channel().isActive()) {
+            if (ctx.channel().isActive() && !ctx.equals(excludeCtx)) {
                 ctx.writeAndFlush(new TextWebSocketFrame(jsonString));
             }
         }
@@ -327,5 +340,15 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
             }
         }
         log.debug("Broadcasted player list update: {}", playerList);
+    }
+
+    private static void notifyInGamePlayers(String message) {
+        MinecraftServer server = Main.getMinecraftServer();
+        if (server != null) {
+            Component chatMessage = Component.literal("[Web Chat] " + message)
+                    .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC);
+            server.getPlayerList().broadcastSystemMessage(chatMessage, false);
+            log.debug("Notified in-game players: {}", message);
+        }
     }
 }

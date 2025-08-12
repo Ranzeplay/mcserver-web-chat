@@ -1,5 +1,6 @@
 package space.ranzeplay.MCServerWebChat.services;
 
+import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.MinecraftServer;
@@ -47,7 +48,7 @@ public class ChatService {
         }
     }
 
-    public void broadcastWebMessage(String username, String message, String messageId) {
+    public void broadcastWebMessage(String username, String message, String messageId, io.netty.channel.ChannelHandlerContext senderCtx) {
         // Broadcast to in-game players
         MinecraftServer server = Main.getMinecraftServer();
         if (server != null) {
@@ -60,12 +61,16 @@ public class ChatService {
             log.debug("Broadcasted web message from {} to in-game players", username);
         }
         
-        // Also broadcast to other web clients with message ID
-        WebSocketHandler.broadcastToWebClients("§b[Web] " + username + "§f: " + message, messageId);
-        log.debug("Broadcasted web message from {} to web clients", username);
+        // Broadcast to other web clients (excluding sender) with message ID
+        WebSocketHandler.broadcastToWebClients("§b[Web] " + username + "§f: " + message, messageId, senderCtx);
+        log.debug("Broadcasted web message from {} to other web clients", username);
         
         // Store in history
         MessageHistoryService.getInstance().addMessage(username, message, "web");
+    }
+
+    public void broadcastWebMessage(String username, String message, String messageId) {
+        broadcastWebMessage(username, message, messageId, null);
     }
 
     // Overloaded method for backward compatibility

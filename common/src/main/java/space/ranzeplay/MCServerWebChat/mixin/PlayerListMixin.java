@@ -27,7 +27,7 @@ public class PlayerListMixin {
         }
     }
 
-    @Inject(method = "remove", at = @At("HEAD"))
+    @Inject(method = "remove", at = @At("TAIL"))
     private void onPlayerLeave(ServerPlayer player, CallbackInfo ci) {
         try {
             PlayerEventService.getInstance().onPlayerLeave(player);

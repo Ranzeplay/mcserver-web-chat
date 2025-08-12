@@ -48,16 +48,9 @@ public class PlayerEventService {
         // Broadcast leave notification to web clients
         WebSocketHandler.broadcastPlayerLeave(username);
         
-        // Update player list for all clients (after player removal)
-        // We need to get the list after the player is removed, so we'll schedule it
-        // for the next tick to ensure the player is properly removed from the list
-        MinecraftServer server = Main.getMinecraftServer();
-        if (server != null) {
-            server.execute(() -> {
-                List<String> playerList = getCurrentPlayerList();
-                WebSocketHandler.broadcastPlayerListUpdate(playerList);
-            });
-        }
+        // Update player list for all clients (player is already removed at TAIL injection)
+        List<String> playerList = getCurrentPlayerList();
+        WebSocketHandler.broadcastPlayerListUpdate(playerList);
     }
 
     public List<String> getCurrentPlayerList() {
