@@ -12,37 +12,51 @@ dependencies {
 }
 
 // Frontend build tasks
-task checkPnpm {
+tasks.register('checkPnpm') {
     doLast {
         try {
             exec {
-                commandLine 'pnpm', '--version'
+                if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+                    commandLine 'cmd', '/c', 'pnpm', '--version'
+                } else {
+                    commandLine 'pnpm', '--version'
+                }
             }
         } catch (Exception e) {
-            throw new GradleException("pnpm is not installed. Please install pnpm to build the frontend.")
+            throw e
         }
     }
 }
 
-task buildFrontend(dependsOn: checkPnpm) {
+tasks.register('buildFrontend') {
+    dependsOn checkPnpm
     inputs.dir("${rootProject.projectDir}/web/src")
     inputs.file("${rootProject.projectDir}/web/package.json")
     inputs.file("${rootProject.projectDir}/web/pnpm-lock.yaml")
     outputs.dir("${rootProject.projectDir}/web/dist")
-    
+
     doLast {
         exec {
             workingDir "${rootProject.projectDir}/web"
-            commandLine 'pnpm', 'install'
+            if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+                commandLine 'cmd', '/c', 'pnpm', 'install'
+            } else {
+                commandLine 'pnpm', 'install'
+            }
         }
         exec {
             workingDir "${rootProject.projectDir}/web"
-            commandLine 'pnpm', 'build'
+            if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+                commandLine 'cmd', '/c', 'pnpm', 'build'
+            } else {
+                commandLine 'pnpm', 'build'
+            }
         }
     }
 }
 
-task copyFrontendAssets(type: Copy, dependsOn: buildFrontend) {
+tasks.register('copyFrontendAssets', Copy) {
+    dependsOn buildFrontend
     from "${rootProject.projectDir}/web/dist"
     into sourceSets.main.output.resourcesDir
 }
