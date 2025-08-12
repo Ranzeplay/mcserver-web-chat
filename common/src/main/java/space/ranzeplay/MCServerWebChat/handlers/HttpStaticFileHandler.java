@@ -41,7 +41,13 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
         
         // Try to serve the file from resources
         String resourcePath = "static" + uri;
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resourcePath);
+        // Normalize and validate resourcePath to prevent path traversal
+        Path normalizedPath = Paths.get(resourcePath).normalize();
+        if (!normalizedPath.startsWith("static")) {
+            sendError(ctx, BAD_REQUEST);
+            return;
+        }
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(normalizedPath.toString().replace('\\', '/'));
         
         if (inputStream != null) {
             try {
