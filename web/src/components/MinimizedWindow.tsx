@@ -1,10 +1,13 @@
+import type React from "react";
+
 interface MinimizedWindowProps {
   title: string;
   onRestore: () => void;
-  position: number; // Position index for spacing
+  position: number; // Position index for spacing;
+  icon?: React.ReactNode; // Optional icon for the window
 }
 
-export default function MinimizedWindow({ title, onRestore, position }: MinimizedWindowProps) {
+export default function MinimizedWindow({ title, onRestore, position, icon }: MinimizedWindowProps) {
   return (
     <div
       className="fixed bottom-4 z-40"
@@ -16,7 +19,7 @@ export default function MinimizedWindow({ title, onRestore, position }: Minimize
         title={`Restore ${title}`}
       >
         <span className="text-xs font-bold">
-          {title.slice(0, 2).toUpperCase()}
+          {icon ?? title.slice(0, 2).toUpperCase()}
         </span>
         {/* Tooltip */}
         <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">

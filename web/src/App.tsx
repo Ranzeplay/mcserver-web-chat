@@ -6,6 +6,7 @@ import MinimizedWindow from './components/MinimizedWindow';
 import { WebSocketService, type ChatMessage, type AuthState, type ServerMessage } from './services/websocket';
 import { SessionService } from './services/sessionService';
 import { enableMockMode, mockMessages } from './services/mockData';
+import { LogIn, MessageCircleMore } from 'lucide-react';
 import './App.css';
 
 function App() {
@@ -262,6 +263,7 @@ function App() {
             title="Login"
             onRestore={() => setIsAuthMinimized(false)}
             position={0}
+            icon={<LogIn />}
           />
         )}
       </div>
@@ -295,6 +297,7 @@ function App() {
           title="Chat"
           onRestore={() => setIsChatMinimized(false)}
           position={0}
+          icon={<MessageCircleMore />}
         />
       )}
     </div>
