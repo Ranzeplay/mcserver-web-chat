@@ -13,15 +13,20 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import space.ranzeplay.MCServerWebChat.handlers.WebSocketHandler;
 import space.ranzeplay.MCServerWebChat.handlers.HttpStaticFileHandler;
+import space.ranzeplay.MCServerWebChat.services.ConfigService;
 
 @Slf4j
 public class WebServer {
-    private static final int PORT = 8080;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private Channel serverChannel;
     @Getter
     private boolean isRunning = false;
+    private final ConfigService configService;
+
+    public WebServer() {
+        this.configService = ConfigService.getInstance();
+    }
 
     public void start() {
         if (isRunning) {
@@ -42,7 +47,7 @@ public class WebServer {
                         pipeline.addLast(new HttpServerCodec());
                         pipeline.addLast(new HttpObjectAggregator(65536));
                         pipeline.addLast(new ChunkedWriteHandler());
-                        pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
+                        pipeline.addLast(new WebSocketServerProtocolHandler(configService.getWebsocketPath()));
                         pipeline.addLast(new WebSocketHandler());
                         pipeline.addLast(new HttpStaticFileHandler());
                     }
@@ -50,10 +55,11 @@ public class WebServer {
                 .option(ChannelOption.SO_BACKLOG, 128)
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            ChannelFuture f = b.bind(PORT).sync();
+            int port = configService.getWebPort();
+            ChannelFuture f = b.bind(port).sync();
             isRunning = true;
             serverChannel = f.channel();
-            log.info("MC Web Chat server started on port {}", PORT);
+            log.info("MC Web Chat server started on port {} with WebSocket path {}", port, configService.getWebsocketPath());
             
         } catch (Exception e) {
             log.error("Failed to start web server: {}", e.getMessage(), e);
