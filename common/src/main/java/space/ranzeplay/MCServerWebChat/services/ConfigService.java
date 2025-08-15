@@ -55,6 +55,11 @@ public class ConfigService {
         defaultConfig.addProperty("language", "en-us");
         defaultConfig.addProperty("webPort", 8080);
         defaultConfig.addProperty("enableDebugLogging", false);
+        defaultConfig.addProperty("baseUrl", "http://localhost:8080");
+        defaultConfig.addProperty("websocketPath", "/ws");
+        defaultConfig.addProperty("serverName", "MCServer Web Chat");
+        defaultConfig.addProperty("enableCors", true);
+        defaultConfig.addProperty("staticResourcePath", "/static");
         return defaultConfig;
     }
 
@@ -85,6 +90,62 @@ public class ConfigService {
 
     public int getWebPort() {
         return config.has("webPort") ? config.get("webPort").getAsInt() : 8080;
+    }
+
+    public void setWebPort(int port) {
+        config.addProperty("webPort", port);
+        saveConfig();
+        log.info("Web port changed to: {}", port);
+    }
+
+    public String getBaseUrl() {
+        return config.has("baseUrl") ? config.get("baseUrl").getAsString() : "http://localhost:8080";
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        config.addProperty("baseUrl", baseUrl);
+        saveConfig();
+        log.info("Base URL changed to: {}", baseUrl);
+    }
+
+    public String getWebsocketPath() {
+        return config.has("websocketPath") ? config.get("websocketPath").getAsString() : "/ws";
+    }
+
+    public void setWebsocketPath(String path) {
+        config.addProperty("websocketPath", path);
+        saveConfig();
+        log.info("WebSocket path changed to: {}", path);
+    }
+
+    public String getServerName() {
+        return config.has("serverName") ? config.get("serverName").getAsString() : "MCServer Web Chat";
+    }
+
+    public void setServerName(String name) {
+        config.addProperty("serverName", name);
+        saveConfig();
+        log.info("Server name changed to: {}", name);
+    }
+
+    public boolean isCorsEnabled() {
+        return config.has("enableCors") ? config.get("enableCors").getAsBoolean() : true;
+    }
+
+    public void setCorsEnabled(boolean enabled) {
+        config.addProperty("enableCors", enabled);
+        saveConfig();
+        log.info("CORS enabled changed to: {}", enabled);
+    }
+
+    public String getStaticResourcePath() {
+        return config.has("staticResourcePath") ? config.get("staticResourcePath").getAsString() : "/static";
+    }
+
+    public void setStaticResourcePath(String path) {
+        config.addProperty("staticResourcePath", path);
+        saveConfig();
+        log.info("Static resource path changed to: {}", path);
     }
 
     public boolean isDebugLoggingEnabled() {
