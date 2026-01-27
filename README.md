@@ -34,6 +34,8 @@ If you have [BlueMap](https://github.com/BlueMap-Minecraft/BlueMap) installed:
 
 See [CONFIGURATION.md](CONFIGURATION.md) for detailed configuration options.
 
+For BlueMap integration and database configuration, see [BLUEMAP_DATABASE_GUIDE.md](BLUEMAP_DATABASE_GUIDE.md).
+
 ## Usage
 
 ### As a Standalone Mod
