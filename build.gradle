@@ -29,6 +29,7 @@ subprojects {
         // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
         // See https://docs.gradle.org/current/userguide/declaring_repositories.html
         // for more information about repositories.
+        maven { url "https://repo.bluecolored.de/releases" }
     }
 
     dependencies {
@@ -49,6 +50,9 @@ subprojects {
         implementation 'at.favre.lib:bcrypt:0.10.2'
         implementation 'org.xerial:sqlite-jdbc:3.47.1.0'
         implementation 'org.slf4j:slf4j-api:2.0.16'
+
+        // BlueMap API (optional compile-only dependency)
+        compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.9.0'
 
         compileOnly 'org.projectlombok:lombok:1.18.38'
         annotationProcessor 'org.projectlombok:lombok:1.18.38'

@@ -1,0 +1,6 @@
+{
+  "id": "mcserver-web-chat",
+  "entrypoint": "space.ranzeplay.MCServerWebChat.bluemap.BlueMapWebChatAddon",
+  "dependencies": [],
+  "soft-dependencies": []
+}
