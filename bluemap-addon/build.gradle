@@ -13,13 +13,14 @@ repositories {
 }
 
 dependencies {
-    implementation project(':common')
+    // Don't depend on common directly - we'll shadow only what we need
+    compileOnly project(':common')
     
     // BlueMap API
-    compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.9.0'
+    compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.7.2'
     
     // Required for addon
-    implementation 'com.google.code.gson:gson:2.10.1'
+    compileOnly 'org.slf4j:slf4j-api:2.0.16'
     compileOnly 'org.projectlombok:lombok:1.18.38'
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
 }
@@ -36,11 +37,16 @@ tasks.withType(JavaCompile).configureEach {
 
 shadowJar {
     archiveClassifier = ''
-    configurations = [project.configurations.runtimeClasspath]
     
-    // Don't include BlueMap API in the final jar
-    dependencies {
-        exclude(dependency('de.bluecolored.bluemap:BlueMapAPI'))
+    configurations = []
+    
+    // Include the addon's own classes
+    from sourceSets.main.output
+    
+    // Include only BlueMapIntegrationService from common
+    from(project(':common').sourceSets.main.output) {
+        include 'space/ranzeplay/MCServerWebChat/services/BlueMapIntegrationService.class'
+        include 'space/ranzeplay/MCServerWebChat/services/BlueMapIntegrationService$*.class'
     }
 }
 
