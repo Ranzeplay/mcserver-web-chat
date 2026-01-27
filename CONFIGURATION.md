@@ -18,6 +18,57 @@ The backend configuration is managed by `ConfigService.java` and stored in `conf
 | `serverName` | string | `"MCServer Web Chat"` | Display name for the server |
 | `enableCors` | boolean | `true` | Enable CORS support |
 | `staticResourcePath` | string | `"/static"` | Path for static resources |
+| `database` | object | See below | Database configuration |
+
+### Database Configuration
+
+The `database` object supports both SQLite and PostgreSQL:
+
+```json
+{
+  "database": {
+    "type": "sqlite",  // or "postgresql"
+    "sqliteFilePath": "mcserver-web-chat.db",  // For SQLite
+    "host": "localhost",       // For PostgreSQL
+    "port": 5432,              // For PostgreSQL
+    "database": "mcserver_web_chat",  // For PostgreSQL
+    "username": "postgres",    // For PostgreSQL
+    "password": "",            // For PostgreSQL
+    "maxPoolSize": 10          // For PostgreSQL connection pooling
+  }
+}
+```
+
+#### SQLite Configuration (Default)
+```json
+{
+  "database": {
+    "type": "sqlite",
+    "sqliteFilePath": "mcserver-web-chat.db"
+  }
+}
+```
+
+#### PostgreSQL Configuration
+```json
+{
+  "database": {
+    "type": "postgresql",
+    "host": "localhost",
+    "port": 5432,
+    "database": "mcserver_web_chat",
+    "username": "postgres",
+    "password": "your_secure_password",
+    "maxPoolSize": 10
+  }
+}
+```
+
+**Security Notes:**
+- All database queries use prepared statements to prevent SQL injection
+- PostgreSQL connections use HikariCP connection pooling for security and performance
+- Never commit database passwords to version control
+- Use environment variables or secure secret management for production passwords
 
 ### Usage
 
@@ -52,7 +103,17 @@ Example configuration file:
   "websocketPath": "/ws",
   "serverName": "MCServer Web Chat",
   "enableCors": true,
-  "staticResourcePath": "/static"
+  "staticResourcePath": "/static",
+  "database": {
+    "type": "sqlite",
+    "host": "localhost",
+    "port": 5432,
+    "database": "mcserver_web_chat",
+    "username": "postgres",
+    "password": "",
+    "maxPoolSize": 10,
+    "sqliteFilePath": "mcserver-web-chat.db"
+  }
 }
 ```
 

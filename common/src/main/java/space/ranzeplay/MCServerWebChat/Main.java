@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.minecraft.server.MinecraftServer;
 import space.ranzeplay.MCServerWebChat.services.BlueMapIntegrationService;
 import space.ranzeplay.MCServerWebChat.services.ConfigService;
+import space.ranzeplay.MCServerWebChat.services.DatabaseService;
 
 import java.nio.file.Path;
 
@@ -61,6 +62,9 @@ public final class Main {
         if (webServer != null && webServer.isRunning()) {
             webServer.stop();
         }
+        
+        // Shutdown database connections
+        DatabaseService.getInstance().shutdown();
     }
 
     public static void setMinecraftServer(MinecraftServer server) {

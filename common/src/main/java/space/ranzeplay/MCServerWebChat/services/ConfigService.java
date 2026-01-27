@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import space.ranzeplay.MCServerWebChat.Main;
+import space.ranzeplay.MCServerWebChat.models.DatabaseConfig;
+import space.ranzeplay.MCServerWebChat.models.DatabaseType;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,6 +62,19 @@ public class ConfigService {
         defaultConfig.addProperty("serverName", "MCServer Web Chat");
         defaultConfig.addProperty("enableCors", true);
         defaultConfig.addProperty("staticResourcePath", "/static");
+        
+        // Database configuration
+        JsonObject dbConfig = new JsonObject();
+        dbConfig.addProperty("type", "sqlite"); // sqlite or postgresql
+        dbConfig.addProperty("host", "localhost");
+        dbConfig.addProperty("port", 5432);
+        dbConfig.addProperty("database", "mcserver_web_chat");
+        dbConfig.addProperty("username", "postgres");
+        dbConfig.addProperty("password", "");
+        dbConfig.addProperty("maxPoolSize", 10);
+        dbConfig.addProperty("sqliteFilePath", "mcserver-web-chat.db");
+        defaultConfig.add("database", dbConfig);
+        
         return defaultConfig;
     }
 
@@ -150,5 +165,35 @@ public class ConfigService {
 
     public boolean isDebugLoggingEnabled() {
         return config.has("enableDebugLogging") && config.get("enableDebugLogging").getAsBoolean();
+    }
+    
+    public DatabaseConfig getDatabaseConfig() {
+        if (!config.has("database")) {
+            // Return default SQLite config if not configured
+            return DatabaseConfig.builder().build();
+        }
+        
+        JsonObject dbConfig = config.getAsJsonObject("database");
+        DatabaseType type = DatabaseType.fromString(
+            dbConfig.has("type") ? dbConfig.get("type").getAsString() : "sqlite"
+        );
+        
+        DatabaseConfig.Builder builder = DatabaseConfig.builder()
+            .type(type);
+        
+        if (type == DatabaseType.POSTGRESQL) {
+            if (dbConfig.has("host")) builder.host(dbConfig.get("host").getAsString());
+            if (dbConfig.has("port")) builder.port(dbConfig.get("port").getAsInt());
+            if (dbConfig.has("database")) builder.database(dbConfig.get("database").getAsString());
+            if (dbConfig.has("username")) builder.username(dbConfig.get("username").getAsString());
+            if (dbConfig.has("password")) builder.password(dbConfig.get("password").getAsString());
+            if (dbConfig.has("maxPoolSize")) builder.maxPoolSize(dbConfig.get("maxPoolSize").getAsInt());
+        } else {
+            if (dbConfig.has("sqliteFilePath")) {
+                builder.sqliteFilePath(dbConfig.get("sqliteFilePath").getAsString());
+            }
+        }
+        
+        return builder.build();
     }
 }
