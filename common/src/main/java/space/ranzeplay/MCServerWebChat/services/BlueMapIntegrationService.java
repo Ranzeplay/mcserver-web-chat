@@ -16,13 +16,13 @@ public class BlueMapIntegrationService {
     private static BlueMapIntegrationService instance;
     
     @Getter
-    private boolean blueMapAvailable = false;
+    private final boolean blueMapAvailable;
     
     private Object blueMapAPI; // Will be BlueMapAPI when available
     private final List<Consumer<Object>> onBlueMapEnableCallbacks = new ArrayList<>();
     
     private BlueMapIntegrationService() {
-        checkBlueMapAvailability();
+        blueMapAvailable = checkBlueMapAvailability();
     }
     
     public static synchronized BlueMapIntegrationService getInstance() {
@@ -34,16 +34,17 @@ public class BlueMapIntegrationService {
     
     /**
      * Checks if BlueMap API is available at runtime.
+     * This check is performed once during initialization.
      */
-    private void checkBlueMapAvailability() {
+    private boolean checkBlueMapAvailability() {
         try {
             // Try to load BlueMap API class
             Class.forName("de.bluecolored.bluemap.api.BlueMapAPI");
-            blueMapAvailable = true;
             log.info("BlueMap API detected - integration features will be enabled");
+            return true;
         } catch (ClassNotFoundException e) {
-            blueMapAvailable = false;
             log.debug("BlueMap API not found - running in standalone mode");
+            return false;
         }
     }
     

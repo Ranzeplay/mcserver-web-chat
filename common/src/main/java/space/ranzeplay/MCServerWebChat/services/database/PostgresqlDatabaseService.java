@@ -41,11 +41,6 @@ public class PostgresqlDatabaseService implements IDatabaseService {
         hikariConfig.setMaxLifetime(1800000); // 30 minutes
         hikariConfig.setAutoCommit(true);
         
-        // PostgreSQL-specific optimizations
-        hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
-        hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
-        hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        
         this.dataSource = new HikariDataSource(hikariConfig);
         
         log.info("PostgreSQL connection pool initialized: {}:{}/{}", 
@@ -135,8 +130,8 @@ public class PostgresqlDatabaseService implements IDatabaseService {
         String sql = "SELECT username, hashed_password FROM users";
         
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
                 users.put(rs.getString("username"), rs.getString("hashed_password"));

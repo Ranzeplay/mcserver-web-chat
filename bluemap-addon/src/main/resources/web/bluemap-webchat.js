@@ -60,13 +60,16 @@
         `;
         
         const iframe = document.createElement('iframe');
-        iframe.src = `http://${window.location.hostname}:${CHAT_CONFIG.port}`;
+        // Use same protocol as current page to avoid mixed content issues
+        const protocol = window.location.protocol;
+        iframe.src = `${protocol}//${window.location.hostname}:${CHAT_CONFIG.port}`;
         iframe.style.cssText = `
             width: 100%;
             height: 100%;
             border: none;
         `;
-        iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms');
+        // Sandbox without allow-same-origin for better security
+        iframe.setAttribute('sandbox', 'allow-scripts allow-forms');
         
         container.appendChild(iframe);
         
