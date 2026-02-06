@@ -63,6 +63,9 @@ public class ConfigService {
         defaultConfig.addProperty("enableCors", true);
         defaultConfig.addProperty("staticResourcePath", "/static");
         
+        // BlueMap integration configuration
+        defaultConfig.addProperty("enableBlueMapIntegration", true);
+        
         // Database configuration
         JsonObject dbConfig = new JsonObject();
         dbConfig.addProperty("type", "sqlite"); // sqlite or postgresql
@@ -165,6 +168,16 @@ public class ConfigService {
 
     public boolean isDebugLoggingEnabled() {
         return config.has("enableDebugLogging") && config.get("enableDebugLogging").getAsBoolean();
+    }
+    
+    public boolean isBlueMapIntegrationEnabled() {
+        return config.has("enableBlueMapIntegration") ? config.get("enableBlueMapIntegration").getAsBoolean() : true;
+    }
+    
+    public void setBlueMapIntegrationEnabled(boolean enabled) {
+        config.addProperty("enableBlueMapIntegration", enabled);
+        saveConfig();
+        log.info("BlueMap integration changed to: {}", enabled);
     }
     
     public DatabaseConfig getDatabaseConfig() {

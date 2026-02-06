@@ -19,6 +19,9 @@
     ],
     "client": [
       "space.ranzeplay.MCServerWebChat.fabric.client.MainFabricClient"
+    ],
+    "bluemap": [
+      "space.ranzeplay.MCServerWebChat.bluemap.BlueMapWebChatAddon"
     ]
   },
   "mixins": [
