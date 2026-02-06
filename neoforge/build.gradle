@@ -52,6 +52,9 @@ dependencies {
     shadowBundle 'io.jsonwebtoken:jjwt-impl:0.12.3'
     shadowBundle 'io.jsonwebtoken:jjwt-gson:0.12.3'
     shadowBundle 'at.favre.lib:bcrypt:0.10.2'
+    
+    // BlueMap for development/debugging (not included in production builds)
+    modLocalRuntime("de.bluecolored.bluemap:bluemap-neoforge:$rootProject.bluemap_version") { transitive = false }
 }
 
 processResources {
