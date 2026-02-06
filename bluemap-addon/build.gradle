@@ -1,0 +1,55 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow'
+}
+
+base {
+    archivesName = "$rootProject.archives_name-bluemap-addon"
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://repo.bluecolored.de/releases" }
+}
+
+dependencies {
+    // Don't depend on common directly - we'll shadow only what we need
+    compileOnly project(':common')
+    
+    // BlueMap API
+    compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.7.2'
+    
+    // Required for addon
+    compileOnly 'org.slf4j:slf4j-api:2.0.16'
+    compileOnly 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+shadowJar {
+    archiveClassifier = ''
+    
+    configurations = []
+    
+    // Include the addon's own classes
+    from sourceSets.main.output
+    
+    // Include only BlueMapIntegrationService from common
+    from(project(':common').sourceSets.main.output) {
+        include 'space/ranzeplay/MCServerWebChat/services/BlueMapIntegrationService.class'
+        include 'space/ranzeplay/MCServerWebChat/services/BlueMapIntegrationService$*.class'
+    }
+}
+
+tasks.named('build') {
+    dependsOn shadowJar
+}
